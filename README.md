@@ -231,3 +231,5 @@ Populate `FlagDemoFetchConfig` locally with your Launch app ID, feature keys, an
 ## License
 
 Apache License 2.0 — see [LICENSE](LICENSE).
+
+<!-- test: verifying GitHub Actions trigger on the public repo, remove before merge -->
