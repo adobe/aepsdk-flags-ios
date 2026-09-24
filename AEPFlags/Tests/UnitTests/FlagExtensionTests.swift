@@ -199,7 +199,12 @@ class FlagExtensionTests: XCTestCase {
         let exp = expectation(description: "init resolved")
         runtime.onResolvePendingSharedState = { _ in exp.fulfill() }
         gate.signal()
-        wait(for: [exp], timeout: 2.0)
+        // `gate.wait()` above blocks a real GCD worker thread inside the production `initQueue`
+        // (a shared, size-limited pool), which GCD only replenishes slowly under contention.
+        // On throttled/shared CI runners that can push the actual resolution well past a couple
+        // of seconds even though nothing is functionally wrong, so this timeout is intentionally
+        // generous rather than a tight local-machine value.
+        wait(for: [exp], timeout: 15.0)
 
         XCTAssertEqual(
             runtime.resolvedSharedStates.last?[FlagConstants.SharedState.initializationStatus] as? String,
