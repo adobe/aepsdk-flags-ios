@@ -18,6 +18,15 @@ import Foundation
 final class FlagClientManager {
     private static let selfTag = "FlagClientManager"
 
+    /// Schedules the slow `FlagsMobileClientFactory.create()` call off the caller's thread.
+    /// Abstracted (rather than a hardcoded `DispatchQueue`) so tests that need to hold this
+    /// work "in flight" for a controlled window don't have to block a real thread out of
+    /// GCD's shared, size-limited `.utility` worker pool -- see `DispatchQueue` conformance
+    /// below for the production behavior this defaults to.
+    protocol InitScheduler {
+        func schedule(_ work: @escaping () -> Void)
+    }
+
     private let extensionRuntime: ExtensionRuntime
     private let identityFetcher: FlagIdentityFetcher
     private let exposureQueue: FeatureExposureQueue
@@ -26,22 +35,24 @@ final class FlagClientManager {
     private var initializationInProgress = false
     private var featureClient: FlagsMobileClientProtocol?
 
-    /// Serializes all reads/writes of client state. `initQueue` is used only for the slow
+    /// Serializes all reads/writes of client state. `initScheduler` is used only for the slow
     /// `FlagsMobileClientFactory.create()` call; state mutations always land back here so
     /// extension-queue callers (`readyForEvent`, handlers) never race with background init.
     private let stateQueue = DispatchQueue(label: "com.adobe.flags.clientState")
-    private let initQueue = DispatchQueue(label: "com.adobe.flags.clientInit", qos: .utility)
+    private let initScheduler: InitScheduler
 
     init(
         extensionRuntime: ExtensionRuntime,
         identityFetcher: FlagIdentityFetcher,
-        exposureQueue: FeatureExposureQueue? = nil
+        exposureQueue: FeatureExposureQueue? = nil,
+        initScheduler: InitScheduler? = nil
     ) {
         self.extensionRuntime = extensionRuntime
         self.identityFetcher = identityFetcher
         self.exposureQueue = exposureQueue ?? FeatureExposureQueue { events in
             FlagEdgeHandler.dispatchExposureEvents(extensionRuntime: extensionRuntime, events: events)
         }
+        self.initScheduler = initScheduler ?? DispatchQueue(label: "com.adobe.flags.clientInit", qos: .utility)
     }
 
     func isClientReady() -> Bool {
@@ -81,7 +92,7 @@ final class FlagClientManager {
             )
             resolver([FlagConstants.SharedState.initializationStatus: FlagConstants.SharedState.statusFailed])
         case let .start(config):
-            initQueue.async { [weak self] in
+            initScheduler.schedule { [weak self] in
                 guard let self else {
                     resolver([FlagConstants.SharedState.initializationStatus: FlagConstants.SharedState.statusFailed])
                     return
@@ -389,5 +400,11 @@ final class FlagClientManager {
         )
 
         extensionRuntime.dispatch(event: responseEvent)
+    }
+}
+
+extension DispatchQueue: FlagClientManager.InitScheduler {
+    func schedule(_ work: @escaping () -> Void) {
+        self.async(execute: work)
     }
 }

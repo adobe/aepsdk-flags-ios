@@ -165,6 +165,15 @@ class FlagClientManagerTests: XCTestCase {
 
     // T-C4: A second `startAsyncInitialization` while one is in progress does not resolve twice or re-init.
     func testStartAsyncInitialization_secondCallWhileInProgress_noDuplicate() {
+        // Uses a dedicated-thread scheduler (not the production GCD-pooled default) so that
+        // gate.wait() below blocks a throwaway OS thread instead of a shared GCD worker-pool
+        // thread -- see DedicatedThreadInitScheduler for why that distinction matters.
+        manager = FlagClientManager(
+            extensionRuntime: runtime,
+            identityFetcher: identityFetcher,
+            initScheduler: DedicatedThreadInitScheduler()
+        )
+
         let gate = DispatchSemaphore(value: 0)
         let createCount = AtomicCounter()
         FlagsMobileClientFactory.createOverride = { _ in
@@ -181,7 +190,7 @@ class FlagClientManagerTests: XCTestCase {
             resolveExp.fulfill()
         }
 
-        // First call: sets initializationInProgress synchronously, then blocks in createOverride on initQueue.
+        // First call: sets initializationInProgress synchronously, then blocks in createOverride on its own thread.
         manager.startAsyncInitialization(configData: fullRequiredConfig(), resolver: resolver)
         XCTAssertTrue(manager.isInitializationInProgress())
 
@@ -189,12 +198,7 @@ class FlagClientManagerTests: XCTestCase {
         manager.startAsyncInitialization(configData: fullRequiredConfig(), resolver: resolver)
 
         gate.signal()
-        // `gate.wait()` above blocks a real GCD worker thread inside the production `initQueue`
-        // (a shared, size-limited pool), which GCD only replenishes slowly under contention.
-        // On throttled/shared CI runners that can push the actual resolution well past a couple
-        // of seconds even though nothing is functionally wrong, so this timeout is intentionally
-        // generous rather than a tight local-machine value.
-        wait(for: [resolveExp], timeout: 15.0)
+        wait(for: [resolveExp], timeout: 5.0)
 
         XCTAssertEqual(resolveCount.value, 1)
         XCTAssertEqual(createCount.value, 1)
