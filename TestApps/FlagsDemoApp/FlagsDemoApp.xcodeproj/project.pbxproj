@@ -1,0 +1,333 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+	BF001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR001 /* AppDelegate.swift */; };
+	BF002 /* FlagDemoFetchConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR002 /* FlagDemoFetchConfig.swift */; };
+	BF003 /* FlagsDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR003 /* FlagsDemoApp.swift */; };
+	BF004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR004 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+	FR001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+	FR002 /* FlagDemoFetchConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagDemoFetchConfig.swift; sourceTree = "<group>"; };
+	FR003 /* FlagsDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagsDemoApp.swift; sourceTree = "<group>"; };
+	FR004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+	FR005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+	FR006 /* FlagsDemoApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FlagsDemoApp.entitlements; sourceTree = "<group>"; };
+	PR001 /* FlagsDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlagsDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+	PHFW /* Frameworks */ = {
+		isa = PBXFrameworksBuildPhase;
+		buildActionMask = 2147483647;
+		files = (
+		);
+		runOnlyForDeploymentPostprocessing = 0;
+	};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+	GR001 = {
+		isa = PBXGroup;
+		children = (
+			GR002 /* FlagsDemoApp */,
+			GR003 /* Products */,
+		);
+		sourceTree = "<group>";
+	};
+	GR002 /* FlagsDemoApp */ = {
+		isa = PBXGroup;
+		children = (
+			FR001 /* AppDelegate.swift */,
+			FR002 /* FlagDemoFetchConfig.swift */,
+			FR003 /* FlagsDemoApp.swift */,
+			FR004 /* Assets.xcassets */,
+			FR005 /* Info.plist */,
+			FR006 /* FlagsDemoApp.entitlements */,
+		);
+		path = .;
+		sourceTree = "<group>";
+	};
+	GR003 /* Products */ = {
+		isa = PBXGroup;
+		children = (
+			PR001 /* FlagsDemoApp.app */,
+		);
+		name = Products;
+		sourceTree = "<group>";
+	};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+	C0A1B2C3D4E5F6789012345A /* FlagsDemoApp */ = {
+		isa = PBXNativeTarget;
+		buildConfigurationList = CF003 /* Build configuration list for PBXNativeTarget "FlagsDemoApp" */;
+		buildPhases = (
+			PHSR /* Sources */,
+			PHFW /* Frameworks */,
+			PHRS /* Resources */,
+		);
+		buildRules = (
+		);
+		dependencies = (
+		);
+		name = FlagsDemoApp;
+		packageProductDependencies = (
+			PD001 /* AEPFlags */,
+			PD002 /* AEPCore */,
+			PD004 /* AEPEdge */,
+			PD005 /* AEPEdgeIdentity */,
+			PD006 /* AEPLifecycle */,
+		);
+		productName = FlagsDemoApp;
+		productReference = PR001 /* FlagsDemoApp.app */;
+		productType = "com.apple.product-type.application";
+	};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+	PRJ001 /* Project object */ = {
+		isa = PBXProject;
+		attributes = {
+			BuildIndependentTargetsInParallel = 1;
+			LastSwiftUpdateCheck = 1600;
+			LastUpgradeCheck = 1600;
+			TargetAttributes = {
+				C0A1B2C3D4E5F6789012345A = {
+					CreatedOnToolsVersion = 16.0;
+				};
+			};
+		};
+		buildConfigurationList = CF001 /* Build configuration list for PBXProject "FlagsDemoApp" */;
+		compatibilityVersion = "Xcode 14.0";
+		developmentRegion = en;
+		hasScannedForEncodings = 0;
+		knownRegions = (
+			en,
+			Base,
+		);
+		mainGroup = GR001;
+		packageReferences = (
+			PKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */,
+			PKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */,
+			PKGEDGE /* XCRemoteSwiftPackageReference "aepsdk-edge-ios" */,
+			PKGEDGEID /* XCRemoteSwiftPackageReference "aepsdk-edgeidentity-ios" */,
+		);
+		productRefGroup = GR003 /* Products */;
+		projectDirPath = "";
+		projectRoot = "";
+		targets = (
+			C0A1B2C3D4E5F6789012345A /* FlagsDemoApp */,
+		);
+	};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+	PHRS /* Resources */ = {
+		isa = PBXResourcesBuildPhase;
+		buildActionMask = 2147483647;
+		files = (
+			BF004 /* Assets.xcassets in Resources */,
+		);
+		runOnlyForDeploymentPostprocessing = 0;
+	};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+	PHSR /* Sources */ = {
+		isa = PBXSourcesBuildPhase;
+		buildActionMask = 2147483647;
+		files = (
+			BF001 /* AppDelegate.swift in Sources */,
+			BF002 /* FlagDemoFetchConfig.swift in Sources */,
+			BF003 /* FlagsDemoApp.swift in Sources */,
+		);
+		runOnlyForDeploymentPostprocessing = 0;
+	};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+	CF010 /* Debug */ = {
+		isa = XCBuildConfiguration;
+		buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ENABLE_MODULES = YES;
+			COPY_PHASE_STRIP = NO;
+			DEBUG_INFORMATION_FORMAT = dwarf;
+			ENABLE_TESTABILITY = YES;
+			GCC_DYNAMIC_NO_PIC = NO;
+			GCC_OPTIMIZATION_LEVEL = 0;
+			IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+			ONLY_ACTIVE_ARCH = YES;
+			SDKROOT = iphoneos;
+			SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+			SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+		};
+		name = Debug;
+	};
+	CF011 /* Release */ = {
+		isa = XCBuildConfiguration;
+		buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ENABLE_MODULES = YES;
+			COPY_PHASE_STRIP = NO;
+			DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+			SDKROOT = iphoneos;
+			SWIFT_COMPILATION_MODE = wholemodule;
+			VALIDATE_PRODUCT = YES;
+		};
+		name = Release;
+	};
+	CF020 /* Debug */ = {
+		isa = XCBuildConfiguration;
+		buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			CODE_SIGN_ENTITLEMENTS = FlagsDemoApp.entitlements;
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = YES;
+			INFOPLIST_FILE = Info.plist;
+			INFOPLIST_KEY_CFBundleDisplayName = FlagsDemoApp;
+			INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+			INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+			INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+			LD_RUNPATH_SEARCH_PATHS = (
+				"$(inherited)",
+				"@executable_path/Frameworks",
+			);
+			MARKETING_VERSION = 1.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.adobe.FlagsDemoApp;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2";
+		};
+		name = Debug;
+	};
+	CF021 /* Release */ = {
+		isa = XCBuildConfiguration;
+		buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			CODE_SIGN_ENTITLEMENTS = FlagsDemoApp.entitlements;
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = YES;
+			INFOPLIST_FILE = Info.plist;
+			INFOPLIST_KEY_CFBundleDisplayName = FlagsDemoApp;
+			INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+			INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+			INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+			LD_RUNPATH_SEARCH_PATHS = (
+				"$(inherited)",
+				"@executable_path/Frameworks",
+			);
+			MARKETING_VERSION = 1.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.adobe.FlagsDemoApp;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2";
+		};
+		name = Release;
+	};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+	CF001 /* Build configuration list for PBXProject "FlagsDemoApp" */ = {
+		isa = XCConfigurationList;
+		buildConfigurations = (
+			CF010 /* Debug */,
+			CF011 /* Release */,
+		);
+		defaultConfigurationIsVisible = 0;
+		defaultConfigurationName = Release;
+	};
+	CF003 /* Build configuration list for PBXNativeTarget "FlagsDemoApp" */ = {
+		isa = XCConfigurationList;
+		buildConfigurations = (
+			CF020 /* Debug */,
+			CF021 /* Release */,
+		);
+		defaultConfigurationIsVisible = 0;
+		defaultConfigurationName = Release;
+	};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+	PKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */ = {
+		isa = XCLocalSwiftPackageReference;
+		relativePath = ../..;
+	};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+	PKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */ = {
+		isa = XCRemoteSwiftPackageReference;
+		repositoryURL = "https://github.com/adobe/aepsdk-core-ios.git";
+		requirement = {
+			kind = upToNextMajorVersion;
+			minimumVersion = 5.8.0;
+		};
+	};
+	PKGEDGE /* XCRemoteSwiftPackageReference "aepsdk-edge-ios" */ = {
+		isa = XCRemoteSwiftPackageReference;
+		repositoryURL = "https://github.com/adobe/aepsdk-edge-ios.git";
+		requirement = {
+			kind = upToNextMajorVersion;
+			minimumVersion = 5.0.2;
+		};
+	};
+	PKGEDGEID /* XCRemoteSwiftPackageReference "aepsdk-edgeidentity-ios" */ = {
+		isa = XCRemoteSwiftPackageReference;
+		repositoryURL = "https://github.com/adobe/aepsdk-edgeidentity-ios.git";
+		requirement = {
+			kind = upToNextMajorVersion;
+			minimumVersion = 5.0.0;
+		};
+	};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+	PD001 /* AEPFlags */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = PKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */;
+		productName = AEPFlags;
+	};
+	PD002 /* AEPCore */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = PKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */;
+		productName = AEPCore;
+	};
+	PD004 /* AEPEdge */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = PKGEDGE /* XCRemoteSwiftPackageReference "aepsdk-edge-ios" */;
+		productName = AEPEdge;
+	};
+	PD005 /* AEPEdgeIdentity */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = PKGEDGEID /* XCRemoteSwiftPackageReference "aepsdk-edgeidentity-ios" */;
+		productName = AEPEdgeIdentity;
+	};
+	PD006 /* AEPLifecycle */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = PKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */;
+		productName = AEPLifecycle;
+	};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = PRJ001 /* Project object */;
+}

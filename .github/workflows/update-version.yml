@@ -1,0 +1,79 @@
+#
+# Copyright 2026 Adobe. All rights reserved.
+# This file is licensed to you under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License. You may obtain a copy
+# of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+# OF ANY KIND, either express or implied. See the License for the specific language
+# governing permissions and limitations under the License.
+
+name: Update Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New AEPFlags version (e.g. 5.1.0-beta).'
+        type: string
+        required: true
+      branch:
+        description: 'Target branch to update and open the PR against.'
+        type: string
+        required: true
+      core-dependency:
+        description: 'Optional: new AEPCore/AEPServices minimum version (e.g. 5.9.0).'
+        type: string
+        required: false
+        default: ''
+      edge-dependency:
+        description: 'Optional: new AEPEdge minimum version (e.g. 5.1.0).'
+        type: string
+        required: false
+        default: ''
+      edge-identity-dependency:
+        description: 'Optional: new AEPEdgeIdentity minimum version (e.g. 5.2.0).'
+        type: string
+        required: false
+        default: ''
+
+jobs:
+  update-version:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Update version
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          CORE_DEP: ${{ github.event.inputs.core-dependency }}
+          EDGE_DEP: ${{ github.event.inputs.edge-dependency }}
+          EDGE_ID_DEP: ${{ github.event.inputs.edge-identity-dependency }}
+        run: |
+          DEPS=""
+          [ -n "$CORE_DEP" ] && DEPS="AEPCore $CORE_DEP"
+          [ -n "$EDGE_DEP" ] && DEPS="${DEPS:+$DEPS, }AEPEdge $EDGE_DEP"
+          [ -n "$EDGE_ID_DEP" ] && DEPS="${DEPS:+$DEPS, }AEPEdgeIdentity $EDGE_ID_DEP"
+          if [ -n "$DEPS" ]; then
+            sh ./Scripts/update-version.sh -v "$VERSION" -d "$DEPS"
+          else
+            sh ./Scripts/update-version.sh -v "$VERSION"
+          fi
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4.2.3
+        with:
+          token: ${{ github.token }}
+          commit-message: Updating version to ${{ github.event.inputs.version }}.
+          branch: version-${{ github.event.inputs.version }}-update
+          delete-branch: true
+          base: ${{ github.event.inputs.branch }}
+          title: Updating version to ${{ github.event.inputs.version }}
+          body: Updating version to ${{ github.event.inputs.version }}

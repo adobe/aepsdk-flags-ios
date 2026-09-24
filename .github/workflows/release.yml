@@ -1,0 +1,72 @@
+#
+# Copyright 2026 Adobe. All rights reserved.
+# This file is licensed to you under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License. You may obtain a copy
+# of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+# OF ANY KIND, either express or implied. See the License for the specific language
+# governing permissions and limitations under the License.
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag / version. Must match FlagConstants.extensionVersion (e.g. 5.1.0-beta).'
+        type: string
+        required: true
+      action_tag:
+        description: 'Create the git tag + GitHub release and upload the XCFramework? (yes/no)'
+        type: string
+        required: true
+        default: 'yes'
+
+jobs:
+  release:
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4.0'
+
+      # Gate: the release tag must equal the single-sourced product version in
+      # AEPFlags/Sources/FlagConstants.swift, so the git tag == the version the SDK reports.
+      - name: Verify version matches tag
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: make check-version VERSION="$TAG"
+
+      - name: Build XCFramework (extension + engine, from source)
+        run: make build-extension-xcf
+
+      - name: Stage versioned XCFramework archive
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: cp build/AEPFlags.xcframework.zip "build/AEPFlags-$TAG.xcframework.zip"
+
+      # Creates the git tag on main (SPM consumers resolve it) and attaches the XCFramework zip
+      # for non-SPM consumers. No CocoaPods: this repo ships SPM + XCFramework only.
+      - name: Create GitHub release and upload XCFramework
+        if: ${{ github.event.inputs.action_tag == 'yes' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ github.event.inputs.tag }}
+          tag_name: ${{ github.event.inputs.tag }}
+          target_commitish: main
+          generate_release_notes: true
+          make_latest: "true"
+          files: |
+            ./build/AEPFlags-${{ github.event.inputs.tag }}.xcframework.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

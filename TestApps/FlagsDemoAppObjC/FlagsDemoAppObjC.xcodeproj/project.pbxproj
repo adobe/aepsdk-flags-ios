@@ -1,0 +1,375 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+	OBF001 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = OFR001 /* AppDelegate.m */; };
+	OBF002 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = OFR003 /* SceneDelegate.m */; };
+	OBF003 /* FlagDemoFetchConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = OFR005 /* FlagDemoFetchConfig.m */; };
+	OBF004 /* FlagDemoJSONHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = OFR007 /* FlagDemoJSONHelper.m */; };
+	OBF005 /* FlagDemoUIHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = OFR009 /* FlagDemoUIHelper.m */; };
+	OBF006 /* FlagsTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = OFR011 /* FlagsTestViewController.m */; };
+	OBF007 /* GetFeatureViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = OFR013 /* GetFeatureViewController.m */; };
+	OBF008 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = OFR015 /* main.m */; };
+	OBF009 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = OFR016 /* Assets.xcassets */; };
+	OBF010 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = OFR017 /* LaunchScreen.storyboard */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+	OFR000 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+	OFR001 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+	OFR002 /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+	OFR003 /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+	OFR004 /* FlagDemoFetchConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FlagDemoFetchConfig.h; sourceTree = "<group>"; };
+	OFR005 /* FlagDemoFetchConfig.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FlagDemoFetchConfig.m; sourceTree = "<group>"; };
+	OFR006 /* FlagDemoJSONHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FlagDemoJSONHelper.h; sourceTree = "<group>"; };
+	OFR007 /* FlagDemoJSONHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FlagDemoJSONHelper.m; sourceTree = "<group>"; };
+	OFR008 /* FlagDemoUIHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FlagDemoUIHelper.h; sourceTree = "<group>"; };
+	OFR009 /* FlagDemoUIHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FlagDemoUIHelper.m; sourceTree = "<group>"; };
+	OFR010 /* FlagsTestViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FlagsTestViewController.h; sourceTree = "<group>"; };
+	OFR011 /* FlagsTestViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FlagsTestViewController.m; sourceTree = "<group>"; };
+	OFR012 /* GetFeatureViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GetFeatureViewController.h; sourceTree = "<group>"; };
+	OFR013 /* GetFeatureViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GetFeatureViewController.m; sourceTree = "<group>"; };
+	OFR014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+	OFR015 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+	OFR016 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+	OFR018 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+	OPR001 /* FlagsDemoAppObjC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlagsDemoAppObjC.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+	OPHFW /* Frameworks */ = {
+		isa = PBXFrameworksBuildPhase;
+		buildActionMask = 2147483647;
+		files = (
+		);
+		runOnlyForDeploymentPostprocessing = 0;
+	};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+	OGR001 = {
+		isa = PBXGroup;
+		children = (
+			OGR002 /* FlagsDemoAppObjC */,
+			OGR003 /* Products */,
+		);
+		sourceTree = "<group>";
+	};
+	OGR002 /* FlagsDemoAppObjC */ = {
+		isa = PBXGroup;
+		children = (
+			OFR000 /* AppDelegate.h */,
+			OFR001 /* AppDelegate.m */,
+			OFR002 /* SceneDelegate.h */,
+			OFR003 /* SceneDelegate.m */,
+			OFR004 /* FlagDemoFetchConfig.h */,
+			OFR005 /* FlagDemoFetchConfig.m */,
+			OFR006 /* FlagDemoJSONHelper.h */,
+			OFR007 /* FlagDemoJSONHelper.m */,
+			OFR008 /* FlagDemoUIHelper.h */,
+			OFR009 /* FlagDemoUIHelper.m */,
+			OFR010 /* FlagsTestViewController.h */,
+			OFR011 /* FlagsTestViewController.m */,
+			OFR012 /* GetFeatureViewController.h */,
+			OFR013 /* GetFeatureViewController.m */,
+			OFR015 /* main.m */,
+			OFR017 /* LaunchScreen.storyboard */,
+			OFR016 /* Assets.xcassets */,
+			OFR014 /* Info.plist */,
+		);
+		path = .;
+		sourceTree = "<group>";
+	};
+	OGR003 /* Products */ = {
+		isa = PBXGroup;
+		children = (
+			OPR001 /* FlagsDemoAppObjC.app */,
+		);
+		name = Products;
+		sourceTree = "<group>";
+	};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+	OTGT001 /* FlagsDemoAppObjC */ = {
+		isa = PBXNativeTarget;
+		buildConfigurationList = OCF003 /* Build configuration list for PBXNativeTarget "FlagsDemoAppObjC" */;
+		buildPhases = (
+			OPHSR /* Sources */,
+			OPHFW /* Frameworks */,
+			OPHRS /* Resources */,
+		);
+		buildRules = (
+		);
+		dependencies = (
+		);
+		name = FlagsDemoAppObjC;
+		packageProductDependencies = (
+			OPD001 /* AEPFlags */,
+			OPD002 /* AEPCore */,
+			OPD004 /* AEPEdge */,
+			OPD005 /* AEPEdgeIdentity */,
+			OPD006 /* AEPLifecycle */,
+		);
+		productName = FlagsDemoAppObjC;
+		productReference = OPR001 /* FlagsDemoAppObjC.app */;
+		productType = "com.apple.product-type.application";
+	};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+	OPRJ001 /* Project object */ = {
+		isa = PBXProject;
+		attributes = {
+			BuildIndependentTargetsInParallel = 1;
+			LastUpgradeCheck = 1600;
+			LastSwiftUpdateCheck = 1600;
+			TargetAttributes = {
+				OTGT001 = {
+					CreatedOnToolsVersion = 16.0;
+				};
+			};
+		};
+		buildConfigurationList = OCF001 /* Build configuration list for PBXProject "FlagsDemoAppObjC" */;
+		compatibilityVersion = "Xcode 14.0";
+		developmentRegion = en;
+		hasScannedForEncodings = 0;
+		knownRegions = (
+			en,
+			Base,
+		);
+		mainGroup = OGR001;
+		packageReferences = (
+			OPKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */,
+			OPKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */,
+			OPKGEDGE /* XCRemoteSwiftPackageReference "aepsdk-edge-ios" */,
+			OPKGEDGEID /* XCRemoteSwiftPackageReference "aepsdk-edgeidentity-ios" */,
+		);
+		productRefGroup = OGR003 /* Products */;
+		projectDirPath = "";
+		projectRoot = "";
+		targets = (
+			OTGT001 /* FlagsDemoAppObjC */,
+		);
+	};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+	OPHRS /* Resources */ = {
+		isa = PBXResourcesBuildPhase;
+		buildActionMask = 2147483647;
+		files = (
+			OBF009 /* Assets.xcassets in Resources */,
+			OBF010 /* LaunchScreen.storyboard in Resources */,
+		);
+		runOnlyForDeploymentPostprocessing = 0;
+	};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+	OPHSR /* Sources */ = {
+		isa = PBXSourcesBuildPhase;
+		buildActionMask = 2147483647;
+		files = (
+			OBF001 /* AppDelegate.m in Sources */,
+			OBF002 /* SceneDelegate.m in Sources */,
+			OBF003 /* FlagDemoFetchConfig.m in Sources */,
+			OBF004 /* FlagDemoJSONHelper.m in Sources */,
+			OBF005 /* FlagDemoUIHelper.m in Sources */,
+			OBF006 /* FlagsTestViewController.m in Sources */,
+			OBF007 /* GetFeatureViewController.m in Sources */,
+			OBF008 /* main.m in Sources */,
+		);
+		runOnlyForDeploymentPostprocessing = 0;
+	};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+	OFR017 /* LaunchScreen.storyboard */ = {
+		isa = PBXVariantGroup;
+		children = (
+			OFR018 /* Base */,
+		);
+		name = LaunchScreen.storyboard;
+		sourceTree = "<group>";
+	};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+	OCF010 /* Debug */ = {
+		isa = XCBuildConfiguration;
+		buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ENABLE_MODULES = YES;
+			CLANG_ENABLE_OBJC_ARC = YES;
+			COPY_PHASE_STRIP = NO;
+			DEBUG_INFORMATION_FORMAT = dwarf;
+			ENABLE_TESTABILITY = YES;
+			GCC_DYNAMIC_NO_PIC = NO;
+			GCC_OPTIMIZATION_LEVEL = 0;
+			IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+			ONLY_ACTIVE_ARCH = YES;
+			SDKROOT = iphoneos;
+		};
+		name = Debug;
+	};
+	OCF011 /* Release */ = {
+		isa = XCBuildConfiguration;
+		buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ENABLE_MODULES = YES;
+			CLANG_ENABLE_OBJC_ARC = YES;
+			COPY_PHASE_STRIP = NO;
+			DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+			SDKROOT = iphoneos;
+			VALIDATE_PRODUCT = YES;
+		};
+		name = Release;
+	};
+	OCF020 /* Debug */ = {
+		isa = XCBuildConfiguration;
+		buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+			CLANG_ENABLE_MODULES = YES;
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = YES;
+			INFOPLIST_FILE = Info.plist;
+			INFOPLIST_KEY_CFBundleDisplayName = FlagsDemoAppObjC;
+			INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+			INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+			LD_RUNPATH_SEARCH_PATHS = (
+				"$(inherited)",
+				"@executable_path/Frameworks",
+			);
+			MARKETING_VERSION = 1.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.adobe.FlagsDemoAppObjC;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			TARGETED_DEVICE_FAMILY = "1,2";
+		};
+		name = Debug;
+	};
+	OCF021 /* Release */ = {
+		isa = XCBuildConfiguration;
+		buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+			CLANG_ENABLE_MODULES = YES;
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = YES;
+			INFOPLIST_FILE = Info.plist;
+			INFOPLIST_KEY_CFBundleDisplayName = FlagsDemoAppObjC;
+			INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+			INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+			LD_RUNPATH_SEARCH_PATHS = (
+				"$(inherited)",
+				"@executable_path/Frameworks",
+			);
+			MARKETING_VERSION = 1.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.adobe.FlagsDemoAppObjC;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			TARGETED_DEVICE_FAMILY = "1,2";
+		};
+		name = Release;
+	};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+	OCF001 /* Build configuration list for PBXProject "FlagsDemoAppObjC" */ = {
+		isa = XCConfigurationList;
+		buildConfigurations = (
+			OCF010 /* Debug */,
+			OCF011 /* Release */,
+		);
+		defaultConfigurationIsVisible = 0;
+		defaultConfigurationName = Release;
+	};
+	OCF003 /* Build configuration list for PBXNativeTarget "FlagsDemoAppObjC" */ = {
+		isa = XCConfigurationList;
+		buildConfigurations = (
+			OCF020 /* Debug */,
+			OCF021 /* Release */,
+		);
+		defaultConfigurationIsVisible = 0;
+		defaultConfigurationName = Release;
+	};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+	OPKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */ = {
+		isa = XCLocalSwiftPackageReference;
+		relativePath = ../..;
+	};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+	OPKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */ = {
+		isa = XCRemoteSwiftPackageReference;
+		repositoryURL = "https://github.com/adobe/aepsdk-core-ios.git";
+		requirement = {
+			kind = upToNextMajorVersion;
+			minimumVersion = 5.8.0;
+		};
+	};
+	OPKGEDGE /* XCRemoteSwiftPackageReference "aepsdk-edge-ios" */ = {
+		isa = XCRemoteSwiftPackageReference;
+		repositoryURL = "https://github.com/adobe/aepsdk-edge-ios.git";
+		requirement = {
+			kind = upToNextMajorVersion;
+			minimumVersion = 5.0.2;
+		};
+	};
+	OPKGEDGEID /* XCRemoteSwiftPackageReference "aepsdk-edgeidentity-ios" */ = {
+		isa = XCRemoteSwiftPackageReference;
+		repositoryURL = "https://github.com/adobe/aepsdk-edgeidentity-ios.git";
+		requirement = {
+			kind = upToNextMajorVersion;
+			minimumVersion = 5.0.0;
+		};
+	};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+	OPD001 /* AEPFlags */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = OPKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */;
+		productName = AEPFlags;
+	};
+	OPD002 /* AEPCore */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = OPKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */;
+		productName = AEPCore;
+	};
+	OPD004 /* AEPEdge */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = OPKGEDGE /* XCRemoteSwiftPackageReference "aepsdk-edge-ios" */;
+		productName = AEPEdge;
+	};
+	OPD005 /* AEPEdgeIdentity */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = OPKGEDGEID /* XCRemoteSwiftPackageReference "aepsdk-edgeidentity-ios" */;
+		productName = AEPEdgeIdentity;
+	};
+	OPD006 /* AEPLifecycle */ = {
+		isa = XCSwiftPackageProductDependency;
+		package = OPKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */;
+		productName = AEPLifecycle;
+	};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = OPRJ001 /* Project object */;
+}

@@ -1,0 +1,34 @@
+excluded: # paths to ignore during linting. Takes precedence over `included`.
+  - AEPFlags/Tests
+  - AEPFlagsEngine/Tests
+  - TestApps
+  - .build
+
+included:
+  - AEPFlags/Sources
+  - AEPFlagsEngine/Sources
+
+line_length: 1000
+
+disabled_rules: # rule identifiers to exclude from running
+  - identifier_name
+  - force_cast
+  - todo
+  - multiple_closures_with_trailing_closure
+  - cyclomatic_complexity
+  - file_length
+  - unused_optional_binding
+  - implicit_getter
+  - shorthand_operator
+  - nesting
+  - switch_case_alignment
+  - orphaned_doc_comment
+  - type_name
+  - large_tuple
+  - trailing_comma
+  - type_body_length
+  - function_body_length
+  # Additional stylistic rules the in-repo engine intentionally does not follow.
+  - vertical_parameter_alignment
+  - for_where
+  - function_parameter_count

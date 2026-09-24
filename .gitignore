@@ -1,0 +1,29 @@
+# Xcode
+build/
+DerivedData/
+*.xcframework
+*.xcframework.zip
+*.xcarchive
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Release signing (local only)
+.signing/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+.cursor/

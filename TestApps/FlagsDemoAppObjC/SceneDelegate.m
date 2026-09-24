@@ -1,0 +1,47 @@
+/*
+ Copyright 2026 Adobe. All rights reserved.
+ This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License. You may obtain a copy
+ of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software distributed under
+ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+ OF ANY KIND, either express or implied. See the License for the specific language
+ governing permissions and limitations under the License.
+ */
+
+#import "SceneDelegate.h"
+#import "FlagsTestViewController.h"
+#import "GetFeatureViewController.h"
+
+@implementation SceneDelegate
+
+- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
+    if (![scene isKindOfClass:[UIWindowScene class]]) {
+        return;
+    }
+
+    UIWindowScene *windowScene = (UIWindowScene *)scene;
+    self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
+
+    FlagsTestViewController *flagsController = [[FlagsTestViewController alloc] init];
+    flagsController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Flags"
+                                                              image:[UIImage systemImageNamed:@"list.bullet"]
+                                                                tag:0];
+
+    GetFeatureViewController *getFeatureController = [[GetFeatureViewController alloc] init];
+    getFeatureController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Get Feature"
+                                                                    image:[UIImage systemImageNamed:@"doc.text"]
+                                                                      tag:1];
+
+    UITabBarController *tabBarController = [[UITabBarController alloc] init];
+    tabBarController.viewControllers = @[
+        [[UINavigationController alloc] initWithRootViewController:flagsController],
+        [[UINavigationController alloc] initWithRootViewController:getFeatureController]
+    ];
+
+    self.window.rootViewController = tabBarController;
+    [self.window makeKeyAndVisible];
+}
+
+@end
