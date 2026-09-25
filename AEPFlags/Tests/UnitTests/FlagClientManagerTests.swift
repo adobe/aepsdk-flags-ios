@@ -117,7 +117,9 @@ class FlagClientManagerTests: XCTestCase {
             resolved = data
             exp.fulfill()
         }
-        wait(for: [exp], timeout: 2.0)
+        // Generous timeout: on a contended CI runner this can trail behind a preceding test's
+        // blocked-semaphore GCD thread (see testStartAsyncInitialization_secondCallWhileInProgress_noDuplicate).
+        wait(for: [exp], timeout: 10.0)
 
         XCTAssertEqual(resolved?[FlagConstants.SharedState.initializationStatus] as? String, FlagConstants.SharedState.statusReady)
         XCTAssertTrue(manager.isClientReady())
@@ -163,6 +165,15 @@ class FlagClientManagerTests: XCTestCase {
 
     // T-C4: A second `startAsyncInitialization` while one is in progress does not resolve twice or re-init.
     func testStartAsyncInitialization_secondCallWhileInProgress_noDuplicate() {
+        // Uses a dedicated-thread scheduler (not the production GCD-pooled default) so that
+        // gate.wait() below blocks a throwaway OS thread instead of a shared GCD worker-pool
+        // thread -- see DedicatedThreadInitScheduler for why that distinction matters.
+        manager = FlagClientManager(
+            extensionRuntime: runtime,
+            identityFetcher: identityFetcher,
+            initScheduler: DedicatedThreadInitScheduler()
+        )
+
         let gate = DispatchSemaphore(value: 0)
         let createCount = AtomicCounter()
         FlagsMobileClientFactory.createOverride = { _ in
@@ -179,7 +190,7 @@ class FlagClientManagerTests: XCTestCase {
             resolveExp.fulfill()
         }
 
-        // First call: sets initializationInProgress synchronously, then blocks in createOverride on initQueue.
+        // First call: sets initializationInProgress synchronously, then blocks in createOverride on its own thread.
         manager.startAsyncInitialization(configData: fullRequiredConfig(), resolver: resolver)
         XCTAssertTrue(manager.isInitializationInProgress())
 
@@ -187,7 +198,7 @@ class FlagClientManagerTests: XCTestCase {
         manager.startAsyncInitialization(configData: fullRequiredConfig(), resolver: resolver)
 
         gate.signal()
-        wait(for: [resolveExp], timeout: 2.0)
+        wait(for: [resolveExp], timeout: 5.0)
 
         XCTAssertEqual(resolveCount.value, 1)
         XCTAssertEqual(createCount.value, 1)

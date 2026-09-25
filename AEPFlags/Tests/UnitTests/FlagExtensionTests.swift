@@ -162,6 +162,14 @@ class FlagExtensionTests: XCTestCase {
         // With required config present but no resolved Flag shared state, initialization is started from the gate.
         // kicks off initialization. Use a factory that blocks until the test ends so the async resolution
         // cannot clobber the Flag shared state this test controls explicitly.
+        // Dedicated-thread scheduler: block.wait() below must not tie up a shared GCD worker-pool thread.
+        let manager = FlagClientManager(
+            extensionRuntime: runtime,
+            identityFetcher: identityFetcher,
+            initScheduler: DedicatedThreadInitScheduler()
+        )
+        flag = AEPFlags.Flag(runtime: runtime, clientManager: manager, identityFetcher: identityFetcher)
+
         let block = DispatchSemaphore(value: 0)
         FlagsMobileClientFactory.createOverride = { _ in
             block.wait()
@@ -177,6 +185,16 @@ class FlagExtensionTests: XCTestCase {
     }
 
     func testReadyForEvent_selfHealing_initInProgress_doesNotOrphanPendingState() {
+        // Uses a dedicated-thread scheduler (not the production GCD-pooled default) so that
+        // gate.wait() below blocks a throwaway OS thread instead of a shared GCD worker-pool
+        // thread -- see DedicatedThreadInitScheduler for why that distinction matters.
+        let manager = FlagClientManager(
+            extensionRuntime: runtime,
+            identityFetcher: identityFetcher,
+            initScheduler: DedicatedThreadInitScheduler()
+        )
+        flag = AEPFlags.Flag(runtime: runtime, clientManager: manager, identityFetcher: identityFetcher)
+
         let gate = DispatchSemaphore(value: 0)
         FlagsMobileClientFactory.createOverride = { _ in
             gate.wait()
@@ -199,7 +217,7 @@ class FlagExtensionTests: XCTestCase {
         let exp = expectation(description: "init resolved")
         runtime.onResolvePendingSharedState = { _ in exp.fulfill() }
         gate.signal()
-        wait(for: [exp], timeout: 2.0)
+        wait(for: [exp], timeout: 5.0)
 
         XCTAssertEqual(
             runtime.resolvedSharedStates.last?[FlagConstants.SharedState.initializationStatus] as? String,
