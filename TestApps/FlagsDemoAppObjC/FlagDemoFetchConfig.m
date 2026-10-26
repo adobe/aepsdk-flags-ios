@@ -42,15 +42,7 @@
     return @"";
 }
 
-+ (NSString *)launchAppId {
-    return @"";
-}
-
-+ (NSString *)ecidNamespace {
-    return @"";
-}
-
-+ (NSString *)ecidValue {
++ (NSString *)environmentFileId {
     return @"";
 }
 
@@ -63,19 +55,12 @@
 }
 
 + (NSArray<FlagDemoFeature *> *)knownFeatures {
-    return @[
-        [FlagDemoFeature featureWithKey:@"ai-assistant" displayName:@"AI Assistant" description:@"Example flag: AI assistant entry point"],
-        [FlagDemoFeature featureWithKey:@"premium-support" displayName:@"Premium Support" description:@"Example flag: premium support card"],
-        [FlagDemoFeature featureWithKey:@"loyalty-rewards" displayName:@"Loyalty Rewards" description:@"Example flag: loyalty & rewards"],
-        [FlagDemoFeature featureWithKey:@"store-locator" displayName:@"Store Locator" description:@"Example flag: store locator tab"],
-        [FlagDemoFeature featureWithKey:@"featured-products" displayName:@"Featured Products" description:@"Example flag: featured carousel"],
-        [FlagDemoFeature featureWithKey:@"personalization-hub" displayName:@"Personalization Hub" description:@"Example flag: personalization/offers"],
-        [FlagDemoFeature featureWithKey:@"push-promotions" displayName:@"Push Promotions" description:@"Example flag: promo notifications"],
-        [FlagDemoFeature featureWithKey:@"member-login-badge" displayName:@"Member Login Badge" description:@"Example flag: member login badge"]
-    ];
+    // Empty by default. Add the feature keys you created in Experience Flags, for example:
+    // [FlagDemoFeature featureWithKey:@"new-checkout" displayName:@"New Checkout" description:@"New checkout flow"]
+    return @[];
 }
 
-+ (NSArray<NSString *> *)provisionFeatureKeys {
++ (NSArray<NSString *> *)featureKeys {
     NSMutableArray<NSString *> *keys = [NSMutableArray array];
     for (FlagDemoFeature *feature in [self knownFeatures]) {
         [keys addObject:feature.key];
@@ -84,7 +69,7 @@
 }
 
 + (NSString *)defaultFeatureKey {
-    return @"ai-assistant";
+    return [self knownFeatures].firstObject.key ?: @"";
 }
 
 + (NSString *)configKeyClientId { return @"flags.clientId"; }
@@ -116,18 +101,6 @@
 + (AEPFeatureEvaluationContext *)buildEvaluationContextFromEntries:(NSArray<FlagDemoContextEntry *> *)entries {
     return [[[AEPFeatureEvaluationContext builder]
         withAttributes:[self mergedAttributesFromEntries:entries]]
-        build];
-}
-
-+ (AEPFeatureEvaluationContext *)buildEvaluationContextFromEntries:(NSArray<FlagDemoContextEntry *> *)entries
-                                                  customNamespace:(nullable NSString *)customNamespace
-                                                         customId:(nullable NSString *)customId {
-    NSMutableDictionary<NSString *, NSArray<NSString *> *> *attributes = [[self mergedAttributesFromEntries:entries] mutableCopy];
-    if (customNamespace.length > 0 && customId.length > 0) {
-        attributes[customNamespace] = @[customId];
-    }
-    return [[[AEPFeatureEvaluationContext builder]
-        withAttributes:attributes]
         build];
 }
 

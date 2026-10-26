@@ -12,7 +12,7 @@
 
 import Foundation
 
-/// Context metadata extracted from the combined CDN features response.
+/// Context metadata extracted from the combined flag definitions response.
 /// Carries context variable metadata and field data-type mappings used by the rule engine.
 final class MetadataResponse {
 
@@ -24,7 +24,7 @@ final class MetadataResponse {
     let etag: String?
     /// `true` when metadata content should be applied (caller sets after `contextVersion` comparison).
     let isChanged: Bool
-    /// Logical version of context definitions from the CDN body.
+    /// Logical version of context definitions from the response body.
     let contextVersion: String?
 
     init(contextVariableMap: [String: String],

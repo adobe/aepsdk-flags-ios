@@ -25,7 +25,7 @@ public final class Feature: NSObject {
     var policy: PolicyCache.PolicyDetail?
     @objc(featureHash) public var featureHash: String?
     @objc public var enabled: Bool = false
-    /// Wire `analyticsEnabled`; CDN payloads currently always send `true`.
+    /// Wire `analyticsEnabled`; payloads currently always send `true`.
     @objc public var analyticsEnabled: Bool = true
     public var value: Any?
     public var params: [String: Any]?

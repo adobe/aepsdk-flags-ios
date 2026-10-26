@@ -32,7 +32,12 @@
     ];
 
     [AEPMobileCore registerExtensions:extensions completion:^{
-        [AEPMobileCore configureWithAppId:[FlagDemoFetchConfig launchAppId]];
+        if ([FlagDemoFetchConfig environmentFileId].length == 0) {
+            // The demo screens show how to fix this. Without configuration, flag evaluations time out.
+            [AEPLog warningWithLabel:@"FlagsDemoAppObjC" message:@"environmentFileId is empty in FlagDemoFetchConfig.m; the SDK is not configured."];
+        } else {
+            [AEPMobileCore configureWithAppId:[FlagDemoFetchConfig environmentFileId]];
+        }
         dispatch_async(dispatch_get_main_queue(), ^{
             if (application.applicationState != UIApplicationStateBackground) {
                 [AEPMobileCore lifecycleStart:nil];
