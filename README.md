@@ -12,7 +12,7 @@ The Adobe Experience Platform Flags mobile extension (`AEPFlags`) lets an iOS ap
 ### Requirements
 
 - iOS 12.0 or later
-- Xcode 16 or later, with Swift 5.7 or later <!-- TODO: verify the minimum Xcode version that can consume the released XCFramework -->
+- Swift 5.7 or later
 - AEPCore 5.8.0 or later
 - A mobile property in Data Collection with these extensions installed and configured:
   - Mobile Core
@@ -23,13 +23,11 @@ The Adobe Experience Platform Flags mobile extension (`AEPFlags`) lets an iOS ap
 
 ### Install and configure the Adobe Flags extension in Data Collection
 
-<!-- TODO: verify the Data Collection UI labels in these steps -->
-
-1. In Data Collection, select **Tags**, then open your mobile property.
-2. Select **Extensions** > **Catalog**, search for **Adobe Flags**, then select **Install**.
-3. In the extension settings, enter the **Sandbox** and the **Application ID**, then select **Save**.
+1. In Data Collection, open your mobile property.
+2. Install the **Adobe Flags** extension from the extension catalog.
+3. In the extension settings, enter your sandbox and application ID, then save.
 4. Publish your changes.
-5. Select **Environments**, then copy the **Environment File ID** of the environment you want to use.
+5. Copy the Environment File ID of the environment you want to use.
 
 ## Installation
 

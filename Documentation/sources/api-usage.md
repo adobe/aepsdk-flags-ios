@@ -246,8 +246,8 @@ For a feature that doesn't belong to a feature group, `featureGroupKey` and `fea
 
 The extension uses an identity to assign each user to a variant consistently. It reads identities from Identity for Edge Network. You don't pass identities in the evaluation context.
 
-- **Default**: users are assigned by their Experience Cloud ID (ECID), which Identity for Edge Network creates automatically. <!-- TODO: verify that ECID is the default assignment identity for new flags in Experience Flags -->
-- **Custom identity namespace**: if a flag is set to assign users by a custom identity namespace, set an identity in that namespace with Identity for Edge Network before you evaluate the flag. <!-- TODO: verify the Experience Flags UI term for a flag's identity namespace setting -->
+- **Default**: users are assigned by their Experience Cloud ID (ECID), which Identity for Edge Network creates automatically.
+- **Custom identity namespace**: if a flag is set to assign users by a custom identity namespace, set an identity in that namespace with Identity for Edge Network before you evaluate the flag.
 
 ### Swift
 

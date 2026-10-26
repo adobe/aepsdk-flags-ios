@@ -11,7 +11,7 @@ This page explains how to add the Flags extension to an iOS app and initialize i
 ## Requirements
 
 - iOS 12.0 or later
-- Xcode 16 or later, with Swift 5.7 or later <!-- TODO: verify the minimum Xcode version that can consume the released XCFramework -->
+- Swift 5.7 or later
 - These Adobe Experience Platform Mobile SDK extensions:
 
 | Extension | Module | Minimum version |
@@ -33,13 +33,11 @@ Your mobile property in Data Collection must have these extensions installed and
 
 To install and configure the Adobe Flags extension:
 
-<!-- TODO: verify the Data Collection UI labels in these steps -->
-
-1. In Data Collection, select **Tags**, then open your mobile property.
-2. Select **Extensions** > **Catalog**, search for **Adobe Flags**, then select **Install**.
-3. In the extension settings, enter the **Sandbox** and the **Application ID**, then select **Save**.
+1. In Data Collection, open your mobile property.
+2. Install the **Adobe Flags** extension from the extension catalog.
+3. In the extension settings, enter your sandbox and application ID, then save.
 4. Publish your changes.
-5. Select **Environments**, then copy the **Environment File ID** of the environment you want to use. You use this ID when you initialize the SDK.
+5. Copy the Environment File ID of the environment you want to use. You use this ID when you initialize the SDK.
 
 ## Install the extension
 
@@ -242,13 +240,11 @@ NSString *version = [AEPMobileFlag extensionVersion];
 
 The extension reads these values from the SDK configuration. You set them in Data Collection; you don't need to set them in code.
 
-<!-- TODO: verify which Adobe Flags extension setting in Data Collection maps to each key -->
-
 | Key | Set by | Required | Description |
 | --- | --- | --- | --- |
 | `experienceCloud.org` | Mobile Core | Yes | Your organization ID |
-| `flags.sandbox` | Adobe Flags (**Sandbox**) | Yes | The sandbox that contains your flags |
-| `flags.clientId` | Adobe Flags (**Application ID**) | Yes | The application that your flags belong to |
+| `flags.sandbox` | Adobe Flags | Yes | The sandbox that contains your flags |
+| `flags.clientId` | Adobe Flags | Yes | The application that your flags belong to |
 | `edge.domain` | Edge Network | No | The Edge Network domain. Defaults to `edge.adobedc.net` |
 
 If a required value is missing, every evaluation call reports an error. If the configuration hasn't loaded yet, evaluation calls wait for it, up to the response timeout. For details, see [Handling errors](api-usage.md#handling-errors).
