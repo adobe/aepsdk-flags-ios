@@ -134,8 +134,7 @@ final class FeatureEvaluator {
     }
 
     func isEnabled(featureName: String?, request: GetFeatureRequest) -> Bool {
-        guard let result = evaluate(featureName: featureName, request: request) else { return false }
-        return result.key != nil
+        FeatureResult.isServed(evaluate(featureName: featureName, request: request))
     }
 
     // MARK: - Feature group / feature resolution

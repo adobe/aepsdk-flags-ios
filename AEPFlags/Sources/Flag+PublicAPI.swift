@@ -23,7 +23,16 @@ import Foundation
         FlagConstants.extensionVersion
     }
 
-  /// Evaluates a feature for the given key and returns the full evaluation result when a match exists.
+  /// Evaluates a feature for the given key and returns the full evaluation result when the feature is served.
+  ///
+  /// `completion` is invoked with `nil` when the feature is **not served** to the current user. This is a
+  /// normal outcome, **not an error**, and `errorCallback` is not invoked. The result is `nil` when:
+  /// - the feature key is unknown,
+  /// - the feature's targeting criteria do not match the user, or
+  /// - the user is in a feature-group or feature-level control cohort.
+  ///
+  /// Genuine failures (empty key, extension not initialized or missing configuration, evaluation failure,
+  /// malformed response, dispatch failure or timeout) are reported only through `errorCallback`.
     @objc(getFeature:evaluationContext:completion:)
     static func getFeature(
         _ featureKey: String,
@@ -34,6 +43,9 @@ import Foundation
     }
 
   /// Evaluates a feature with an optional error callback.
+  ///
+  /// `completion(nil)` means "not served" (unknown key, unmatched targeting, control cohort) and is not an
+  /// error. `errorCallback` is invoked only for genuine failures.
     @objc(getFeature:evaluationContext:completion:errorCallback:)
     static func getFeature(
         _ featureKey: String,
@@ -50,6 +62,7 @@ import Foundation
     }
 
   /// Evaluates whether a feature is enabled for the given key and evaluation context.
+  /// Completes with `false` (not an error) for every "not served" case.
     @objc(isFeatureEnabled:evaluationContext:completion:)
     static func isFeatureEnabled(
         _ featureKey: String,
@@ -105,35 +118,11 @@ import Foundation
         )
 
         MobileCore.dispatch(event: event, timeout: FlagConstants.apiTimeoutSeconds) { responseEvent in
-            guard let responseEvent else {
-                failWithError(errorCallback: errorCallback, error: .callbackTimeout)
-                return
-            }
-
-            guard let responseData = responseEvent.data, !responseData.isEmpty else {
-                failWithError(errorCallback: errorCallback, error: .unexpected)
-                return
-            }
-
-            if responseData[FlagConstants.EventDataKeys.responseError] != nil {
-                failWithError(errorCallback: errorCallback, error: responseEvent.flagResponseError ?? .unexpected)
-                return
-            }
-
-            let featureMap = responseData[FlagConstants.EventDataKeys.feature] as? [String: Any]
-            do {
-                if let featureMap {
-                    if let result = try FlagResponseMapper.toFeatureEvaluationResult(featureMap) {
-                        completion(result)
-                    } else {
-                        completion(nil)
-                    }
-                } else {
-                    completion(nil)
-                }
-            } catch {
-                failWithError(errorCallback: errorCallback, error: .unexpected)
-            }
+            GetFeatureResponseHandler.handle(
+                responseEvent: responseEvent,
+                completion: completion,
+                errorCallback: errorCallback
+            )
         }
     }
 

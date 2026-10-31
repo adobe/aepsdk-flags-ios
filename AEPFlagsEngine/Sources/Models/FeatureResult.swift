@@ -44,4 +44,12 @@ public final class FeatureResult: NSObject {
 
     @objc(value)
     public var objcValue: Any? { value }
+
+    /// Single "is served" check. A feature is served only when a result exists and its key is a
+    /// non-empty string. A `nil` result (unknown key, unmatched targeting, group-level control) and the
+    /// feature-level control sentinel (`key == nil`) are both "not served".
+    public static func isServed(_ result: FeatureResult?) -> Bool {
+        guard let key = result?.key, !key.isEmpty else { return false }
+        return true
+    }
 }
