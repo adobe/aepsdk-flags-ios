@@ -13,15 +13,13 @@
 import AEPFlags
 import Foundation
 
-/// Defaults for Flags demo evaluation. Populate locally before running against a real environment.
+/// Settings for the Flags demo. Set these locally before you run the demo against your own mobile property.
 enum FlagDemoFetchConfig {
     static let logTag = ""
 
-    /// Launch environment ID (Data Collection UI). Set locally before running the demo.
-    static let launchAppId = ""
-
-    static let ecidNamespace = ""
-    static let ecidValue = ""
+    /// Environment File ID of your mobile property. In Data Collection, open your mobile property and
+    /// select Environments to find it. While this is empty, the demo shows a message and doesn't configure the SDK.
+    static let environmentFileId = ""
 
     /// Configuration keys published from Data Collection for the Flags extension.
     /// Used by the runtime config-override panel (dev/testing only).
@@ -47,23 +45,18 @@ enum FlagDemoFetchConfig {
             .map { (key, values) in ContextEntry(key: key, value: values.first ?? "") }
     }
 
-    /// Example feature flags with friendly names, mirroring the Luma Flags reference app.
-    /// Replace these keys with the flags provisioned in your own environment.
-    static let knownFeatures: [FeatureInfo] = [
-        FeatureInfo(key: "ai-assistant", displayName: "AI Assistant", description: "Example flag: AI assistant entry point"),
-        FeatureInfo(key: "premium-support", displayName: "Premium Support", description: "Example flag: premium support card"),
-        FeatureInfo(key: "loyalty-rewards", displayName: "Loyalty Rewards", description: "Example flag: loyalty & rewards"),
-        FeatureInfo(key: "store-locator", displayName: "Store Locator", description: "Example flag: store locator tab"),
-        FeatureInfo(key: "featured-products", displayName: "Featured Products", description: "Example flag: featured carousel"),
-        FeatureInfo(key: "personalization-hub", displayName: "Personalization Hub", description: "Example flag: personalization/offers"),
-        FeatureInfo(key: "push-promotions", displayName: "Push Promotions", description: "Example flag: promo notifications"),
-        FeatureInfo(key: "member-login-badge", displayName: "Member Login Badge", description: "Example flag: member login badge")
-    ]
+    /// Feature flags that the Flags tab evaluates. Empty by default: add the feature keys you created in
+    /// Experience Flags. While this list is empty, the demo shows a message instead of evaluating flags.
+    ///
+    /// Example:
+    /// `FeatureInfo(key: "new-checkout", displayName: "New Checkout", description: "New checkout flow")`
+    static let knownFeatures: [FeatureInfo] = []
 
-    /// Feature keys provisioned in your environment. Defaults to the known example keys.
-    static var provisionFeatureKeys: [String] { knownFeatures.map(\.key) }
+    /// Feature keys offered by the key picker on the Get Feature tab.
+    static var featureKeys: [String] { knownFeatures.map(\.key) }
 
-    static let defaultFeatureKey = "ai-assistant"
+    /// Initial feature key on the Get Feature tab. Empty when `knownFeatures` is empty.
+    static var defaultFeatureKey: String { knownFeatures.first?.key ?? "" }
 
     static func mergedAttributes(from entries: [ContextEntry]) -> [String: [String]] {
         var out: [String: [String]] = [:]
@@ -76,23 +69,6 @@ enum FlagDemoFetchConfig {
     static func buildEvaluationContext(from entries: [ContextEntry]) -> FeatureEvaluationContext {
         FeatureEvaluationContext.builder()
             .withAttributes(mergedAttributes(from: entries))
-            .build()
-    }
-
-    /// Builds an evaluation context, optionally injecting a custom identity entry
-    /// (namespace + id) alongside the editable attributes.
-    static func buildEvaluationContext(
-        from entries: [ContextEntry],
-        customIdentityNamespace: String?,
-        customIdentityId: String?
-    ) -> FeatureEvaluationContext {
-        var attributes = mergedAttributes(from: entries)
-        if let namespace = customIdentityNamespace, !namespace.isEmpty,
-           let id = customIdentityId, !id.isEmpty {
-            attributes[namespace] = [id]
-        }
-        return FeatureEvaluationContext.builder()
-            .withAttributes(attributes)
             .build()
     }
 }

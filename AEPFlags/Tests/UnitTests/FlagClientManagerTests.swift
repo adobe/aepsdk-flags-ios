@@ -30,7 +30,8 @@ class FlagClientManagerTests: XCTestCase {
         manager = FlagClientManager(
             extensionRuntime: runtime,
             identityFetcher: identityFetcher,
-            exposureQueue: syncQueue
+            exposureQueue: syncQueue,
+            initScheduler: InlineInitScheduler()
         )
         FlagsMobileClientFactory.createOverride = nil
     }
@@ -163,7 +164,16 @@ class FlagClientManagerTests: XCTestCase {
 
     // T-C4: A second `startAsyncInitialization` while one is in progress does not resolve twice or re-init.
     func testStartAsyncInitialization_secondCallWhileInProgress_noDuplicate() {
+        // Creation is held in flight by a semaphore, so it needs its own thread: an inline scheduler
+        // would block the test thread.
+        manager = FlagClientManager(
+            extensionRuntime: runtime,
+            identityFetcher: identityFetcher,
+            exposureQueue: ExposureQueueTestSupport.createDeterministicQueue { _ in },
+            initScheduler: DedicatedThreadInitScheduler()
+        )
         let gate = DispatchSemaphore(value: 0)
+        defer { gate.signal() }
         let createCount = AtomicCounter()
         FlagsMobileClientFactory.createOverride = { _ in
             createCount.increment()

@@ -12,7 +12,7 @@
 #
 # Validate that the source product version matches an expected version (usually the release tag).
 # The product version is single-sourced in AEPFlags/Sources/FlagConstants.swift `extensionVersion`.
-# There is no podspec or project.pbxproj to cross-check (SPM + xcframework distribution only).
+# The version is defined only in FlagConstants.swift (SPM + XCFramework distribution only).
 # Usage: sh ./Scripts/version.sh <expected-version>
 set -euo pipefail
 

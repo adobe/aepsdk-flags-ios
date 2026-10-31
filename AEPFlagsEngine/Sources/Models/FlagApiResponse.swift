@@ -12,8 +12,8 @@
 
 import Foundation
 
-/// HTTP-aware wrapper around a CDN fetch result. Carries `ETag`, change flag, and the
-/// parsed CDN body (`FGXResponse`).
+/// HTTP-aware wrapper around a flag definitions fetch result. Carries `ETag`, change flag, and the
+/// parsed response body (`FGXResponse`).
 struct FlagApiResponse {
 
     /// Parsed combined response body; `nil` when absent.
@@ -24,6 +24,6 @@ struct FlagApiResponse {
     /// Parsed feature groups; `nil` when `fgxResponse` is absent.
     var featuresResponses: [FeaturesResponse]? { fgxResponse?.featureGroups }
 
-    /// Poll interval from CDN root `ttl`; `nil` when body is absent or `ttl` is non-positive.
+    /// Poll interval from the root `ttl`; `nil` when body is absent or `ttl` is non-positive.
     var pollInterval: Int? { fgxResponse?.pollInterval }
 }

@@ -12,7 +12,7 @@
 
 import Foundation
 
-/// Immutable feature payload returned by ``Flag/getFeature(featureKey:evaluationContext:completion:)``.
+/// Immutable feature payload returned by ``Flag/getFeature(featureKey:evaluationContext:errorCallback:completion:)``.
 @objc(AEPFeatureEvaluationResult)
 public final class FeatureEvaluationResult: NSObject {
     private let idValue: Int

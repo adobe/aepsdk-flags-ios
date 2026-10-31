@@ -12,7 +12,7 @@
 
 import Foundation
 
-/// Parses raw JSON responses from the Edge CDN into SDK model objects.
+/// Parses raw JSON responses from the flag definitions service into SDK model objects.
 /// Internal — not part of the public API.
 enum ResponseParser {
 
@@ -28,7 +28,7 @@ enum ResponseParser {
 
     // MARK: - Public entry points
 
-    /// Parse a v2 combined CDN response body into an `FGXResponse`.
+    /// Parse a v2 combined flag definitions response body into an `FGXResponse`.
     /// - Throws: ``ResponseParseException`` when the body is not valid combined-response JSON.
     static func parseFGXResponse(_ body: String?) throws -> FGXResponse {
         do {
