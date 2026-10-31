@@ -21,7 +21,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=Scripts/semver.sh
+source "${ROOT}/Scripts/semver.sh"
 CONSTANTS="${ROOT}/AEPFlags/Sources/FlagConstants.swift"
+ENGINE_PLIST="${ROOT}/AEPFlagsEngine/Sources/Info.plist"
 PACKAGE_SWIFT="${ROOT}/Package.swift"
 DEP_SEMVER='[0-9]+\.[0-9]+\.[0-9]+'
 
@@ -40,9 +43,15 @@ if [[ -z "${NEW_VERSION}" ]]; then
   exit 1
 fi
 
+require_valid_version "${NEW_VERSION}"
+
 # 1) Product version constant -- replace the entire quoted value (suffix-safe).
 echo "==> Setting FlagConstants.extensionVersion to ${NEW_VERSION}"
 sed -i '' -E "s/(static let extensionVersion[[:space:]]*=[[:space:]]*\")[^\"]*(\")/\1${NEW_VERSION}\2/" "${CONSTANTS}"
+
+# 1b) Other version carriers kept in lockstep with the constant.
+echo "==> Setting ${ENGINE_PLIST#${ROOT}/} CFBundleShortVersionString to ${NEW_VERSION}"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${NEW_VERSION}" "${ENGINE_PLIST}"
 
 # 2) Optional AEP dependency lower bounds in Package.swift (.upToNextMajor(from: "x.y.z")).
 map_repo_url() {
@@ -74,5 +83,8 @@ if [[ -n "${DEPENDENCIES}" ]]; then
     sed -i '' -E "/${repo_re}\.git/ s/(\.upToNextMajor\(from: \")${DEP_SEMVER}(\")/\1${dep_ver}\2/" "${PACKAGE_SWIFT}"
   done
 fi
+
+# Verify: fail loudly if any carrier did not take the new value.
+sh "${ROOT}/Scripts/version.sh" "${NEW_VERSION}"
 
 echo "==> Done. Updated version to ${NEW_VERSION}."

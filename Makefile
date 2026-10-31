@@ -13,6 +13,10 @@ build-extension-xcf:
 check-version:
 	sh ./Scripts/version.sh $(VERSION)
 
+# Read-only: fails if any version carrier disagrees with FlagConstants.extensionVersion.
+verify-version:
+	sh ./Scripts/version.sh
+
 update-version:
 	sh ./Scripts/update-version.sh -v $(VERSION) $(if $(DEPENDENCIES),-d "$(DEPENDENCIES)",)
 
@@ -62,6 +66,6 @@ objc-demo-build:
 	  -destination '$(if $(filter command line environment,$(origin DEST)),$(DEST),$(IOS_SIM_DEST))' \
 	  -derivedDataPath .build/objc-demo-dd
 
-.PHONY: build-extension-xcf check-version update-version build test test-build resolve \
+.PHONY: build-extension-xcf check-version verify-version update-version build test test-build resolve \
 	lint lint-autocorrect format test-SPM-integration \
 	customer-demo objc-demo customer-demo-build objc-demo-build

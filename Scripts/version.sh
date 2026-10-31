@@ -13,29 +13,37 @@
 # Validate that the source product version matches an expected version (usually the release tag).
 # The product version is single-sourced in AEPFlags/Sources/FlagConstants.swift `extensionVersion`.
 # The version is defined only in FlagConstants.swift (SPM + XCFramework distribution only).
-# Usage: sh ./Scripts/version.sh <expected-version>
+# Usage: sh ./Scripts/version.sh [<expected-version>]
+#   With no argument, checks that every version carrier agrees with FlagConstants.extensionVersion.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=Scripts/semver.sh
+source "${ROOT}/Scripts/semver.sh"
 CONSTANTS="${ROOT}/AEPFlags/Sources/FlagConstants.swift"
+ENGINE_PLIST="${ROOT}/AEPFlagsEngine/Sources/Info.plist"
 
-EXPECTED="${1:-}"
-if [[ -z "${EXPECTED}" ]]; then
-  echo "[error] usage: sh ./Scripts/version.sh <expected-version>" >&2
-  exit 1
-fi
-
-SOURCE_VERSION="$(sed -n 's/.*extensionVersion[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "${CONSTANTS}" | head -n 1)"
+SOURCE_VERSION="$(read_source_version "${CONSTANTS}")"
 if [[ -z "${SOURCE_VERSION}" ]]; then
   echo "[error] could not read extensionVersion from ${CONSTANTS}" >&2
   exit 1
 fi
 
-if [[ "${EXPECTED}" == "${SOURCE_VERSION}" ]]; then
-  echo "Pass! Version ${EXPECTED} matches FlagConstants.extensionVersion."
-  exit 0
+EXPECTED="${1:-${SOURCE_VERSION}}"
+require_valid_version "${EXPECTED}"
+
+if [[ "${EXPECTED}" != "${SOURCE_VERSION}" ]]; then
+  echo "[error] Version mismatch: expected '${EXPECTED}' but FlagConstants.extensionVersion is '${SOURCE_VERSION}'." >&2
+  echo "        Run the Update Version workflow (or Scripts/update-version.sh) to bump the source first." >&2
+  exit 1
 fi
 
-echo "[error] Version mismatch: expected '${EXPECTED}' but FlagConstants.extensionVersion is '${SOURCE_VERSION}'." >&2
-echo "        Run the Update Version workflow (or Scripts/update-version.sh) to bump the source first." >&2
-exit 1
+# Every other place that carries the version must agree with the source of truth.
+ENGINE_PLIST_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${ENGINE_PLIST}" 2>/dev/null || true)"
+if [[ "${ENGINE_PLIST_VERSION}" != "${EXPECTED}" ]]; then
+  echo "[error] ${ENGINE_PLIST#${ROOT}/} CFBundleShortVersionString is '${ENGINE_PLIST_VERSION}', expected '${EXPECTED}'." >&2
+  echo "        Run the Update Version workflow (or Scripts/update-version.sh) to sync it." >&2
+  exit 1
+fi
+
+echo "Pass! Version ${EXPECTED} matches FlagConstants.extensionVersion and all version carriers."

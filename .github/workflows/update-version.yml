@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'New AEPFlags version (e.g. 5.1.0-beta).'
+        description: 'New AEPFlags version, no v prefix (e.g. 5.1.0-beta). This is the only place the version is entered; Release reads it from source.'
         type: string
         required: true
       branch:
@@ -40,6 +40,8 @@ on:
 
 jobs:
   update-version:
+    # Manual-only guard (in addition to the workflow_dispatch trigger): never run from push/PR/tag/schedule events.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: macos-latest
     permissions:
       contents: write
