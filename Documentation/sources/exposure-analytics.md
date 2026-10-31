@@ -41,7 +41,7 @@ Both `isFeatureEnabled` and `getFeature` record exposures.
 | The user doesn't match the targeting rules | No |
 | The evaluation fails with an error before it completes | No |
 
-For a user in the control group of a feature, `getFeature` reports an error to your app, but the exposure is still recorded.
+For a user in the control group of a feature, `getFeature` completes with `nil` (not an error), and the exposure is still recorded.
 
 ## Batching
 

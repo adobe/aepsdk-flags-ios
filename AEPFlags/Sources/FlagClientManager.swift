@@ -292,7 +292,9 @@ final class FlagClientManager {
             let feature = try client.getFeature(named: featureName, request: request)
 
             var responseData: [String: Any] = [:]
-            if let feature {
+            // "Not served" (nil result or control sentinel) is a normal outcome: respond with no payload
+            // and no error marker. Exposure is still queued below for control cohorts.
+            if let feature, FeatureResultMapper.isServed(feature) {
                 responseData[FlagConstants.EventDataKeys.feature] = FeatureResultMapper.featureResultToMap(feature)
             }
 

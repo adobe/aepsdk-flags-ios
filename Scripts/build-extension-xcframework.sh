@@ -425,28 +425,28 @@ write_framework_info_plist() {
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
-	<key>CFBundleExecutable</key>
-	<string>${MODULE_NAME}</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.adobe.aepflags</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>${MODULE_NAME}</string>
-	<key>CFBundlePackageType</key>
-	<string>FMWK</string>
-	<key>CFBundleShortVersionString</key>
-	<string>${sdk_version}</string>
-	<key>CFBundleSupportedPlatforms</key>
-	<array>
-		<string>${platform}</string>
-	</array>
-	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>MinimumOSVersion</key>
-	<string>12.0</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>${MODULE_NAME}</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.adobe.aepflags</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>${MODULE_NAME}</string>
+    <key>CFBundlePackageType</key>
+    <string>FMWK</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${sdk_version}</string>
+    <key>CFBundleSupportedPlatforms</key>
+    <array>
+        <string>${platform}</string>
+    </array>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>MinimumOSVersion</key>
+    <string>12.0</string>
 </dict>
 </plist>
 EOF
@@ -466,11 +466,11 @@ assemble_merged_framework() {
   fi
   # Stamp the framework with the product (extension) version resolved by read-version.sh — the
   # single source of truth — so the bundle's CFBundleShortVersionString matches the release tag.
-  # "unknown" only if the product version can't be resolved.
+# Fail the build rather than ship a framework stamped with an unresolved/invalid version.
   local sdk_version
-  sdk_version="$("${ROOT}/Scripts/read-version.sh" 2>/dev/null || true)"
-  if [[ -z "${sdk_version}" ]]; then
-    sdk_version="unknown"
+  if ! sdk_version="$("${ROOT}/Scripts/read-version.sh")" || [[ -z "${sdk_version}" ]]; then
+    echo "[error] could not resolve a valid product version; refusing to build." >&2
+    exit 1
   fi
 
   rm -rf "${output_framework}"

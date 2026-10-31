@@ -15,9 +15,10 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag / version. Must match FlagConstants.extensionVersion (e.g. 5.1.0-beta).'
+        description: 'Optional safety check. Leave empty to release the version in FlagConstants.extensionVersion. If set, it must equal that version exactly (no v prefix, e.g. 5.1.0-beta).'
         type: string
-        required: true
+        required: false
+        default: ''
       action_tag:
         description: 'Create the git tag + GitHub release and upload the XCFramework? (yes/no)'
         type: string
@@ -26,6 +27,8 @@ on:
 
 jobs:
   release:
+    # Manual-only guard (in addition to the workflow_dispatch trigger): never run from push/PR/tag/schedule events.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: macos-15
     permissions:
       contents: write
@@ -40,20 +43,64 @@ jobs:
         with:
           xcode-version: '16.4.0'
 
-      # Gate: the release tag must equal the single-sourced product version in
-      # AEPFlags/Sources/FlagConstants.swift, so the git tag == the version the SDK reports.
-      - name: Verify version matches tag
+      # The release version is NEVER typed by hand: it is read from the single source of truth
+      # (AEPFlags/Sources/FlagConstants.swift, bumped by the Update Version workflow). The git tag,
+      # the GitHub release, the XCFramework name and the framework's CFBundleShortVersionString all derive from it.
+      - name: Resolve release version
+        id: version
         env:
-          TAG: ${{ github.event.inputs.tag }}
-        run: make check-version VERSION="$TAG"
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          VERSION="$(sh ./Scripts/read-version.sh)"
+          if [ -n "$INPUT_TAG" ]; then
+            make check-version VERSION="$INPUT_TAG"
+          fi
+          make check-version VERSION="$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing $VERSION"
+
+      # Never overwrite or duplicate an existing release tag.
+      - name: Ensure tag does not already exist
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -n "$(git ls-remote --tags origin "refs/tags/$VERSION")" ]; then
+            echo "[error] Tag $VERSION already exists. Bump the version with the Update Version workflow first." >&2
+            exit 1
+          fi
+
+      - name: Resolve Swift packages
+        run: swift package resolve
+
+      - name: Run unit tests (SPM on iOS Simulator)
+        run: make test
 
       - name: Build XCFramework (extension + engine, from source)
         run: make build-extension-xcf
 
+      # The shipped binary must report exactly the version being tagged.
+      - name: Verify XCFramework version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          FOUND=0
+          for plist in build/AEPFlags.xcframework/*/AEPFlags.framework/Info.plist; do
+            ACTUAL="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")"
+            if [ "$ACTUAL" != "$VERSION" ]; then
+              echo "[error] $plist reports '$ACTUAL', expected '$VERSION'." >&2
+              exit 1
+            fi
+            FOUND=$((FOUND + 1))
+          done
+          [ "$FOUND" -gt 0 ] || { echo "[error] no framework Info.plist found" >&2; exit 1; }
+
       - name: Stage versioned XCFramework archive
         env:
-          TAG: ${{ github.event.inputs.tag }}
-        run: cp build/AEPFlags.xcframework.zip "build/AEPFlags-$TAG.xcframework.zip"
+          VERSION: ${{ steps.version.outputs.version }}
+        run: cp build/AEPFlags.xcframework.zip "build/AEPFlags-$VERSION.xcframework.zip"
 
       # Creates the git tag on main (SPM consumers resolve it) and attaches the XCFramework zip
       # for non-SPM consumers. No CocoaPods: this repo ships SPM + XCFramework only.
@@ -61,12 +108,12 @@ jobs:
         if: ${{ github.event.inputs.action_tag == 'yes' }}
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ github.event.inputs.tag }}
-          tag_name: ${{ github.event.inputs.tag }}
+          name: v${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
           target_commitish: main
           generate_release_notes: true
           make_latest: "true"
           files: |
-            ./build/AEPFlags-${{ github.event.inputs.tag }}.xcframework.zip
+            ./build/AEPFlags-${{ steps.version.outputs.version }}.xcframework.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -437,7 +437,10 @@ class FlagClientManagerTests: XCTestCase {
         XCTAssertTrue(featureMap?.keys.contains(FlagConstants.EventDataKeys.key) ?? false)
     }
 
-    func testProcessRequestEvent_getFeature_controlCohort_includesNullKeyInFeatureMap() {
+    // Changed: previously asserted the control sentinel was sent as a payload with a null key, which made the
+    // public API fail to map it and report an error. Control is now "not served": no payload, no error marker,
+    // while the exposure event is still queued (unchanged reporting).
+    func testProcessRequestEvent_getFeature_featureLevelControl_notServed_noPayloadNoError_exposureQueued() {
         let mock = MockFlagsMobileClient()
         mock.featureResult = FlagsSDKFeatureResult(
             id: -1,
@@ -451,13 +454,67 @@ class FlagClientManagerTests: XCTestCase {
 
         manager.processRequestEvent(getFeatureEvent(featureName: "checkout-flag"))
 
-        let featureMap = featureMap(from: responseEvents().first)
-        XCTAssertTrue(featureMap?.keys.contains(FlagConstants.EventDataKeys.key) ?? false)
-        XCTAssertTrue(featureMap?[FlagConstants.EventDataKeys.key] is NSNull)
+        XCTAssertEqual(1, responseEvents().count)
+        XCTAssertNil(featureMap(from: responseEvents().first))
+        XCTAssertNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
         XCTAssertTrue(propositionDisplayEdgeEvents().isEmpty)
 
         flushQueuedExposure()
         XCTAssertEqual(1, propositionDisplayEdgeEvents().count)
+    }
+
+    func testProcessRequestEvent_getFeature_unknownKey_notServed_noPayloadNoError_noExposure() {
+        let mock = MockFlagsMobileClient()
+        mock.featureResult = nil
+        initializeManager(with: mock)
+
+        manager.processRequestEvent(getFeatureEvent(featureName: "unknown"))
+        flushQueuedExposure()
+
+        XCTAssertEqual(1, responseEvents().count)
+        XCTAssertNil(featureMap(from: responseEvents().first))
+        XCTAssertNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
+        XCTAssertTrue(propositionDisplayEdgeEvents().isEmpty)
+    }
+
+    func testProcessRequestEvent_getFeature_served_includesPayloadAndQueuesExposure() {
+        let mock = MockFlagsMobileClient()
+        mock.featureResult = featureResultWithAnalytics(
+            featureGroupId: 23261,
+            featureGroupKey: "fg-group",
+            featureId: 1,
+            featureKey: "feature-a",
+            variantId: "10283012"
+        )
+        initializeManager(with: mock)
+
+        manager.processRequestEvent(getFeatureEvent(featureName: "feature-a"))
+
+        XCTAssertEqual("feature-a", featureMap(from: responseEvents().first)?[FlagConstants.EventDataKeys.key] as? String)
+        XCTAssertNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
+        flushQueuedExposure()
+        XCTAssertEqual(1, propositionDisplayEdgeEvents().count)
+    }
+
+    func testProcessRequestEvent_getFeature_emptyName_errors() {
+        initializeManager(with: MockFlagsMobileClient())
+
+        manager.processRequestEvent(getFeatureEvent(featureName: ""))
+
+        XCTAssertEqual(1, responseEvents().count)
+        XCTAssertNotNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
+    }
+
+    func testProcessRequestEvent_getFeature_thrownEvaluationError_errors() {
+        let mock = MockFlagsMobileClient()
+        mock.getFeatureError = FlagClientError.operationFailed(message: "boom", underlying: nil)
+        initializeManager(with: mock)
+
+        manager.processRequestEvent(getFeatureEvent())
+
+        XCTAssertEqual(1, responseEvents().count)
+        XCTAssertNotNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
+        XCTAssertNil(featureMap(from: responseEvents().first))
     }
 
     // MARK: - Exposure queue

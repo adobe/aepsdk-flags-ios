@@ -145,16 +145,18 @@ Flag.isFeatureEnabled("new-checkout", evaluationContext: context) { isEnabled in
 
 Returns the details of a feature for the current user, including the feature metadata and the variant the user is assigned to.
 
-`getFeature` calls the completion with a result only when the feature applies to the user: the feature exists, the user matches its targeting rules, and the user isn't in a control group. In all other cases, it calls the error callback with `AEPError.unexpected`.
+`getFeature` calls the completion with a result only when the feature is served to the user: the feature exists, the user matches its targeting rules, and the user isn't in a control group (feature-group or feature-level). Otherwise the feature is **not served**: the completion is called with `nil`. This is a normal outcome, **not an error**, and the error callback isn't called. The error callback runs only for genuine failures, such as an empty feature key, missing configuration, a failed evaluation, an unreadable response, or a timeout.
+
+> **Behavior change:** earlier versions called the error callback with `AEPError.unexpected` when a feature wasn't served. If your app treated that error as "feature missing", handle `nil` in the completion instead.
 
 | Situation | `isFeatureEnabled` | `getFeature` |
 | --- | --- | --- |
 | The feature applies to the user | `true` | Completion with a `FeatureEvaluationResult` |
-| No feature has this key | `false` | Error callback with `AEPError.unexpected` |
-| The user doesn't match the targeting rules | `false` | Error callback with `AEPError.unexpected` |
-| The user is in a control group | `false` | Error callback with `AEPError.unexpected` |
+| No feature has this key | `false` | Completion with `nil` |
+| The user doesn't match the targeting rules | `false` | Completion with `nil` |
+| The user is in a control group | `false` | Completion with `nil` |
 
-Show your default experience both when the error callback runs and when the result is `nil`.
+Show your default experience when the result is `nil`, and also when the error callback runs.
 
 ### Swift
 
@@ -304,7 +306,7 @@ Each call waits up to 10 seconds for a result. If no result arrives in time, the
 | Error (Swift / Objective-C) | Cause |
 | --- | --- |
 | `AEPError.callbackTimeout` / `AEPErrorCallbackTimeout` | No result within 10 seconds. This usually happens when the SDK configuration hasn't loaded yet or the flag definitions are still downloading. |
-| `AEPError.unexpected` / `AEPErrorUnexpected` | The feature key is empty, a required configuration value is missing, the flag definitions couldn't be downloaded, or the evaluation failed. `getFeature` also reports this error when the feature doesn't apply to the user. See [getFeature](#getfeature). |
+| `AEPError.unexpected` / `AEPErrorUnexpected` | The feature key is empty, a required configuration value is missing, the flag definitions couldn't be downloaded, or the evaluation failed.  A feature that isn't served to the user isn't an error. See [getFeature](#getfeature). |
 
 ### First launch and offline behavior
 
