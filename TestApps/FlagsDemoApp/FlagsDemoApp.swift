@@ -891,14 +891,14 @@ struct GetFeatureScreen: View {
             Text("Interpreting getFeature results")
                 .font(.system(size: 16, weight: .bold))
             Text(
-                "Shows the FeatureEvaluationResult as JSON when the feature applies to the user. " +
-                "If the key doesn't exist, the targeting rules don't match, or the user is in a control group, the error callback runs."
+                "Shows the FeatureEvaluationResult as JSON when the feature is served to the user. " +
+                "If the key doesn't exist, the targeting rules don't match, or the user is in a control group, the result is null. That isn't an error."
             )
             .font(.system(size: 13))
             .foregroundColor(DemoTheme.bodyText)
             .padding(.top, 8)
             Text(
-                "Orange Error card = the error callback ran. Check the console logs."
+                "Orange Error card = a genuine failure (the error callback ran), such as an empty key, missing configuration, or a timeout. Check the console logs."
             )
             .font(.system(size: 13))
             .foregroundColor(DemoTheme.bodyText)
@@ -969,7 +969,7 @@ struct GetFeatureScreen: View {
                     store.addLog("getFeature('\(trimmedKey)') -> id=\(result.id)")
                 } else {
                     resultText = "null"
-                    store.addLog("getFeature('\(trimmedKey)') -> null")
+                    store.addLog("getFeature('\(trimmedKey)') -> null (not served; not an error)")
                 }
             }
         } errorCallback: { error in

@@ -119,8 +119,8 @@
     helpContent.spacing = 8;
     [helpContent addArrangedSubview:[FlagDemoUIHelper titleLabelWithText:@"Interpreting getFeature results"]];
     [helpContent addArrangedSubview:[FlagDemoUIHelper bodyLabelWithText:
-        @"Shows the FeatureEvaluationResult as JSON when the feature applies to the user. If the key doesn't exist, the targeting rules don't match, or the user is in a control group, the error callback runs."]];
-    [helpContent addArrangedSubview:[FlagDemoUIHelper bodyLabelWithText:@"Orange Error card = the error callback ran. Check the console logs."]];
+        @"Shows the FeatureEvaluationResult as JSON when the feature is served to the user. If the key doesn't exist, the targeting rules don't match, or the user is in a control group, the result is null. That isn't an error."]];
+    [helpContent addArrangedSubview:[FlagDemoUIHelper bodyLabelWithText:@"Orange Error card = a genuine failure (the error callback ran), such as an empty key, missing configuration, or a timeout. Check the console logs."]];
     [self.contentStack addArrangedSubview:[FlagDemoUIHelper cardViewWithContent:helpContent]];
 
     self.fetchButton = [FlagDemoUIHelper primaryButtonWithTitle:@"Get Feature"];
@@ -206,6 +206,7 @@
                 NSString *json = [FlagDemoJSONHelper demoJSONStringForResult:result];
                 [strongSelf showResultCardWithTitle:@"JSON Response" body:json isError:NO];
             } else {
+                // Not served (unknown key, targeting not matched, or control group): null is a normal result, not an error.
                 [strongSelf showResultCardWithTitle:@"JSON Response" body:@"null" isError:NO];
             }
         });

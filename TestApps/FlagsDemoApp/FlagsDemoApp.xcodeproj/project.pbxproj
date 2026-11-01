@@ -115,7 +115,7 @@
 		);
 		mainGroup = GR001;
 		packageReferences = (
-			PKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */,
+			PKGLOC /* XCRemoteSwiftPackageReference "aepsdk-flags-ios" */,
 			PKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */,
 			PKGEDGE /* XCRemoteSwiftPackageReference "aepsdk-edge-ios" */,
 			PKGEDGEID /* XCRemoteSwiftPackageReference "aepsdk-edgeidentity-ios" */,
@@ -267,14 +267,15 @@
 	};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-	PKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */ = {
-		isa = XCLocalSwiftPackageReference;
-		relativePath = ../..;
-	};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
+		PKGLOC /* XCRemoteSwiftPackageReference "aepsdk-flags-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/adobe/aepsdk-flags-ios.git";
+			requirement = {
+				kind = exactVersion;
+				version = "5.0.0-beta-1";
+			};
+		};
 	PKGCORE /* XCRemoteSwiftPackageReference "aepsdk-core-ios" */ = {
 		isa = XCRemoteSwiftPackageReference;
 		repositoryURL = "https://github.com/adobe/aepsdk-core-ios.git";
@@ -304,7 +305,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 	PD001 /* AEPFlags */ = {
 		isa = XCSwiftPackageProductDependency;
-		package = PKGLOC /* XCLocalSwiftPackageReference "aepsdk-flags-ios" */;
+		package = PKGLOC /* XCRemoteSwiftPackageReference "aepsdk-flags-ios" */;
 		productName = AEPFlags;
 	};
 	PD002 /* AEPCore */ = {
