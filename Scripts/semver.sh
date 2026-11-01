@@ -12,17 +12,17 @@
 #
 # Shared helpers for the version scripts (source this file; do not execute it).
 #
-# Tag convention for this repo: the git tag IS the version, with NO "v" prefix (e.g. 5.0.0, 5.1.0-beta).
+# Tag convention for this repo: the git tag IS the version, with NO "v" prefix (e.g. 5.0.0, 5.1.0-beta, 5.1.0-beta-1).
 # The single source of truth for the version is AEPFlags/Sources/FlagConstants.swift `extensionVersion`.
 # Keep SEMVER_RE identical to the regex in AEPFlags/Tests/UnitTests/FlagConstantsTests.swift.
 
-SEMVER_RE='^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$'
+SEMVER_RE='^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'
 
 # Exits non-zero with a clear message when $1 is not X.Y.Z or X.Y.Z-suffix (a "v" prefix is rejected).
 require_valid_version() {
   local v="${1:-}"
   if ! [[ "${v}" =~ ${SEMVER_RE} ]]; then
-    echo "[error] '${v}' is not a valid version. Use X.Y.Z or X.Y.Z-suffix with no 'v' prefix (e.g. 5.0.0, 5.1.0-beta)." >&2
+    echo "[error] '${v}' is not a valid version. Use X.Y.Z or X.Y.Z-suffix with no 'v' prefix (e.g. 5.0.0, 5.1.0-beta, 5.1.0-beta-1)." >&2
     return 1
   fi
 }
