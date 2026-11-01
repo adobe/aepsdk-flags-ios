@@ -12,12 +12,12 @@
 
 import Foundation
 
-/// Parsed v2 combined CDN payload — feature groups, root `ttl`, and embedded context metadata.
-/// Single source of truth for the CDN wire format. Internal — not part of the public API.
+/// Parsed v2 combined flag definitions payload — feature groups, root `ttl`, and embedded context metadata.
+/// Single source of truth for the flag definitions wire format. Internal — not part of the public API.
 struct FGXResponse {
 
     let version: Int
-    /// Raw CDN `ttl` from the response root.
+    /// Raw `ttl` from the response root.
     let ttl: Int?
     let contextVersion: String?
     let contextVariableMap: [String: String]

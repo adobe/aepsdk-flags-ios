@@ -102,6 +102,37 @@
     return indicator;
 }
 
++ (UIView *)configStatusContent {
+    BOOL isConfigured = [FlagDemoFetchConfig environmentFileId].length > 0;
+    UIStackView *statusContent = [[UIStackView alloc] init];
+    statusContent.axis = UILayoutConstraintAxisHorizontal;
+    statusContent.spacing = 8;
+    statusContent.alignment = UIStackViewAlignmentCenter;
+    UIView *statusDot = [[UIView alloc] init];
+    statusDot.translatesAutoresizingMaskIntoConstraints = NO;
+    statusDot.backgroundColor = isConfigured ? [FlagDemoTheme onGreenColor] : [FlagDemoTheme errorOrangeColor];
+    statusDot.layer.cornerRadius = 5;
+    [statusDot.widthAnchor constraintEqualToConstant:10].active = YES;
+    [statusDot.heightAnchor constraintEqualToConstant:10].active = YES;
+    UILabel *statusLabel = [self bodyLabelWithText:isConfigured
+        ? @"Environment File ID is set."
+        : @"Environment File ID is not set. Set environmentFileId in FlagDemoFetchConfig.m, then run the app again."];
+    statusLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
+    [statusContent addArrangedSubview:statusDot];
+    [statusContent addArrangedSubview:statusLabel];
+    return statusContent;
+}
+
++ (UIView *)noFeatureKeysContent {
+    UIStackView *content = [[UIStackView alloc] init];
+    content.axis = UILayoutConstraintAxisVertical;
+    content.spacing = 8;
+    [content addArrangedSubview:[self titleLabelWithText:@"No feature keys"]];
+    [content addArrangedSubview:[self bodyLabelWithText:
+        @"Add the feature keys you created in Experience Flags to knownFeatures in FlagDemoFetchConfig.m."]];
+    return content;
+}
+
 @end
 
 @interface FlagDemoContextRowView : UIView
@@ -204,8 +235,7 @@
         ecidLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
         [ecidLabel.widthAnchor constraintEqualToConstant:72].active = YES;
         self.ecidValueLabel = [[UILabel alloc] init];
-        NSString *ecid = [FlagDemoFetchConfig ecidValue];
-        self.ecidValueLabel.text = ecid.length > 0 ? ecid : @"—";
+        self.ecidValueLabel.text = @"—";
         self.ecidValueLabel.font = [UIFont systemFontOfSize:12];
         self.ecidValueLabel.textColor = UIColor.secondaryLabelColor;
         self.ecidValueLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;

@@ -2,7 +2,7 @@
 
 Contributor guide for the iOS **Experience Flags** extension (EventHub name `com.adobe.flags`).
 
-**Integrators:** setup, Data Collection configuration, public API, and exposure batching behavior are documented in the [repository README](../README.md). This file covers module internals, build commands, and tests only.
+**Integrators:** setup, Data Collection configuration, public API, and exposure behavior are documented in the [documentation](../Documentation/README.md). This file covers module internals, build commands, and tests only.
 
 ---
 
@@ -22,7 +22,7 @@ Contributor guide for the iOS **Experience Flags** extension (EventHub name `com
 | Request factory | `Internal/GetFeatureRequestFactory.swift` | Engine `GetFeatureRequest` builder |
 | Constants | `FlagConstants.swift` | Extension name, Edge keys, exposure queue tuning |
 
-Exposure batching rules (flush triggers, enqueue eligibility) are defined in product terms in the [repository README — Exposure batching](../README.md#exposure-batching-edge). Implementation constants:
+Exposure batching rules (flush triggers, enqueue eligibility) are defined in product terms in the [Exposure analytics](../Documentation/sources/exposure-analytics.md). Implementation constants:
 
 ```swift
 // FlagConstants.ExposureQueue
@@ -58,7 +58,7 @@ Test helpers (not shipped in the XCFramework):
 
 | Path | Helpers |
 | ---- | ------- |
-| `Tests/UnitTests/TestHelpers/` | `MockFlagsMobileClient`, `ExposureQueueTestSupport`, `ExposureTestAssertions`, `MockFlagIdentityFetcher` |
+| `Tests/UnitTests/TestHelpers/` | `MockFlagsMobileClient`, `ExposureQueueTestSupport`, `MockFlagIdentityFetcher`, `TestableExtensionRuntime` |
 
 ---
 
@@ -78,4 +78,4 @@ make customer-demo
 
 ## Related documentation
 
-- [Repository README](../README.md) — development and architecture
+- [Documentation](../Documentation/README.md)

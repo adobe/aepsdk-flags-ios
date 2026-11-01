@@ -19,6 +19,16 @@ on:
       - staging
 
 jobs:
+  # Read-only guard: no bump or release happens here; it only fails if version carriers have drifted.
+  verify-version:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify all version carriers agree
+        run: make verify-version
+
   lint:
     runs-on: macos-15
     steps:

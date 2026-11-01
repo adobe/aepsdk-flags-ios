@@ -35,7 +35,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         ]
 
         MobileCore.registerExtensions(extensions) {
-            MobileCore.configureWith(appId: FlagDemoFetchConfig.launchAppId)
+            if FlagDemoFetchConfig.environmentFileId.isEmpty {
+                // The demo screens show how to fix this. Without configuration, flag evaluations time out.
+                Log.warning(label: "FlagsDemoApp", "environmentFileId is empty in FlagDemoFetchConfig.swift; the SDK is not configured.")
+            } else {
+                MobileCore.configureWith(appId: FlagDemoFetchConfig.environmentFileId)
+            }
 
             DispatchQueue.main.async {
                 if application.applicationState != .background {
