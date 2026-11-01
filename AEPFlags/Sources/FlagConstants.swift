@@ -14,7 +14,7 @@ import Foundation
 
 enum FlagConstants {
     static let logTag = "Flags"
-    static let extensionVersion = "1.0.0"
+    static let extensionVersion = "5.0.0-beta"
     static let extensionName = "com.adobe.flags"
     static let friendlyName = "Flags"
     static let apiTimeoutSeconds: TimeInterval = 10.0
