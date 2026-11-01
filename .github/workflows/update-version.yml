@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'New AEPFlags version, no v prefix (e.g. 5.1.0-beta). This is the only place the version is entered; Release reads it from source.'
+        description: 'New AEPFlags version, no v prefix. This is the only place the version is entered; Release reads it from source.'
         type: string
         required: true
       branch:
@@ -23,17 +23,17 @@ on:
         type: string
         required: true
       core-dependency:
-        description: 'Optional: new AEPCore/AEPServices minimum version (e.g. 5.9.0).'
+        description: 'Optional: new AEPCore/AEPServices minimum version.'
         type: string
         required: false
         default: ''
       edge-dependency:
-        description: 'Optional: new AEPEdge minimum version (e.g. 5.1.0).'
+        description: 'Optional: new AEPEdge minimum version.'
         type: string
         required: false
         default: ''
       edge-identity-dependency:
-        description: 'Optional: new AEPEdgeIdentity minimum version (e.g. 5.2.0).'
+        description: 'Optional: new AEPEdgeIdentity minimum version.'
         type: string
         required: false
         default: ''

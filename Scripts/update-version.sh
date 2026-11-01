@@ -14,7 +14,7 @@
 # Update Version GitHub Actions workflow -- humans do not edit version files by hand.
 #
 # Product version is single-sourced in AEPFlags/Sources/FlagConstants.swift `extensionVersion`.
-# The whole quoted value is replaced, so pre-release suffixes (e.g. 5.1.0-beta) are handled.
+# The whole quoted value is replaced, so pre-release suffixes are handled.
 #
 # Usage:
 #   sh ./Scripts/update-version.sh -v <version> [-d "AEPCore x.y.z, AEPEdge a.b.c, AEPEdgeIdentity d.e.f"]

@@ -24,7 +24,7 @@ class FlagConstantsTests: XCTestCase {
         let version = FlagConstants.extensionVersion
         XCTAssertFalse(version.isEmpty)
         XCTAssertNotNil(
-            version.range(of: #"^\d+\.\d+\.\d+(-[A-Za-z0-9.]+)?$"#, options: .regularExpression),
+            version.range(of: #"^\d+\.\d+\.\d+(-[A-Za-z0-9.-]+)?$"#, options: .regularExpression),
             "extensionVersion '\(version)' is not a valid semantic version"
         )
     }
