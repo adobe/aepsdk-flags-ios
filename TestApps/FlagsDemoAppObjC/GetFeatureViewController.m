@@ -90,22 +90,7 @@
     ]];
     [self.contentStack addArrangedSubview:header];
 
-    UIStackView *statusContent = [[UIStackView alloc] init];
-    statusContent.axis = UILayoutConstraintAxisHorizontal;
-    statusContent.spacing = 8;
-    statusContent.alignment = UIStackViewAlignmentCenter;
-    UIView *statusDot = [[UIView alloc] init];
-    statusDot.translatesAutoresizingMaskIntoConstraints = NO;
-    statusDot.backgroundColor = [FlagDemoTheme onGreenColor];
-    statusDot.layer.cornerRadius = 5;
-    [statusDot.widthAnchor constraintEqualToConstant:10].active = YES;
-    [statusDot.heightAnchor constraintEqualToConstant:10].active = YES;
-    UILabel *statusLabel = [[UILabel alloc] init];
-    statusLabel.text = @"Flags: ready";
-    statusLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
-    [statusContent addArrangedSubview:statusDot];
-    [statusContent addArrangedSubview:statusLabel];
-    [self.contentStack addArrangedSubview:[FlagDemoUIHelper cardViewWithContent:statusContent]];
+    [self.contentStack addArrangedSubview:[FlagDemoUIHelper cardViewWithContent:[FlagDemoUIHelper configStatusContent]]];
 
     UIStackView *featureKeyContent = [[UIStackView alloc] init];
     featureKeyContent.axis = UILayoutConstraintAxisVertical;
@@ -119,7 +104,7 @@
     self.featureKeyField.text = [FlagDemoFetchConfig defaultFeatureKey];
     [featureKeyContent addArrangedSubview:self.featureKeyField];
     UIButton *pickerButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [pickerButton setTitle:@"Choose provisioned key" forState:UIControlStateNormal];
+    [pickerButton setTitle:@"Choose a feature key" forState:UIControlStateNormal];
     pickerButton.titleLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
     pickerButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeading;
     [pickerButton addTarget:self action:@selector(showFeatureKeyPicker) forControlEvents:UIControlEventTouchUpInside];
@@ -134,8 +119,8 @@
     helpContent.spacing = 8;
     [helpContent addArrangedSubview:[FlagDemoUIHelper titleLabelWithText:@"Interpreting getFeature results"]];
     [helpContent addArrangedSubview:[FlagDemoUIHelper bodyLabelWithText:
-        @"Returns JSON for the FeatureEvaluationResult when a match exists, or null when no match is found."]];
-    [helpContent addArrangedSubview:        [FlagDemoUIHelper bodyLabelWithText:@"Orange Error card = SDK callback failed (network, IMS, or server error). Check console logs."]];
+        @"Shows the FeatureEvaluationResult as JSON when the feature applies to the user. If the key doesn't exist, the targeting rules don't match, or the user is in a control group, the error callback runs."]];
+    [helpContent addArrangedSubview:[FlagDemoUIHelper bodyLabelWithText:@"Orange Error card = the error callback ran. Check the console logs."]];
     [self.contentStack addArrangedSubview:[FlagDemoUIHelper cardViewWithContent:helpContent]];
 
     self.fetchButton = [FlagDemoUIHelper primaryButtonWithTitle:@"Get Feature"];
@@ -179,10 +164,14 @@
 }
 
 - (void)showFeatureKeyPicker {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Provisioned keys"
-                                                                   message:nil
+    NSArray<NSString *> *keys = [FlagDemoFetchConfig featureKeys];
+    NSString *message = keys.count == 0
+        ? @"No feature keys yet. Type a key, or add keys to knownFeatures in FlagDemoFetchConfig.m."
+        : nil;
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Feature keys"
+                                                                   message:message
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
-    for (NSString *key in [FlagDemoFetchConfig provisionFeatureKeys]) {
+    for (NSString *key in keys) {
         [alert addAction:[UIAlertAction actionWithTitle:key style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             self.featureKeyField.text = key;
         }]];

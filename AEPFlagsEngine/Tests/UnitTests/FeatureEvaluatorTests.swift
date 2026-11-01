@@ -913,4 +913,83 @@ final class FeatureEvaluatorTests: XCTestCase {
         f.policyId = policyId
         return f
     }
+
+    func testEmptyNameDoesNotCrashAndIsNotServed() {
+        putFeatureGroups(featureGroupObjects("R1", featureNamed("alpha")))
+        XCTAssertNil(evaluator.evaluate(featureName: "", request: emptyRequest()))
+        XCTAssertFalse(evaluator.isEnabled(featureName: "", request: emptyRequest()))
+    }
+
+    // MARK: - "Not served" for single-feature evaluate (nil, never an error)
+
+    func testEvaluateTargetingNotMatchedReturnsNil() {
+        evaluator.setFilterService(filterService("country", "STRING"))
+        let f = featureCriteria("jp-only", #"{"criteria": {"attr": "country", "operator": "EQ", "val": "JP"}}"#)
+        putFeatureGroups(featureGroupObjects("R1", f))
+        let req = requestWithContext(["country": ["US"]])
+        XCTAssertNil(evaluator.evaluate(featureName: "jp-only", request: req))
+        XCTAssertFalse(evaluator.isEnabled(featureName: "jp-only", request: req))
+    }
+
+    func testEvaluateFeatureGroupCriteriaNotMatchedReturnsNil() {
+        evaluator.setFilterService(filterService("country", "STRING"))
+        let rel = featureGroupStrings("R1", "feat-a")
+        rel.criteria = #"{"criteria": {"attr": "country", "operator": "EQ", "val": "US"}}"#
+        putFeatureGroups(rel)
+        let req = requestWithContext(["country": ["UK"]])
+        XCTAssertNil(evaluator.evaluate(featureName: "feat-a", request: req))
+        XCTAssertFalse(evaluator.isEnabled(featureName: "feat-a", request: req))
+    }
+
+    func testEvaluateFeatureGroupControlReturnsNil() {
+        let rel = featureGroupStrings("R1", "feat-a")
+        rel.policyId = 999
+        enableFeatureGroupBucketing(rel)
+        putFeatureGroups(rel)
+        var sawControl = false
+        for i in 0..<100 {
+            let req = requestWithNamespaceIdentity(IdentityMapTestHelpers.defaultCohortingNamespace, "control-test-\(i)")
+            if evaluator.evaluateAll(request: req).isEmpty {
+                XCTAssertNil(evaluator.evaluate(featureName: "feat-a", request: req))
+                XCTAssertFalse(evaluator.isEnabled(featureName: "feat-a", request: req))
+                sawControl = true
+                break
+            }
+        }
+        XCTAssertTrue(sawControl)
+    }
+
+    func testEvaluateFeatureLevelControlIsSentinelAndNotServed() {
+        let f = featurePolicy("ab-feature", 888)
+        f.params = IdentityMapTestHelpers.ecidBucketingParams()
+        putFeatureGroups(featureGroupObjects("R1", f))
+        var sawControl = false
+        for i in 0..<200 {
+            let req = requestWithNamespaceIdentity(IdentityMapTestHelpers.defaultCohortingNamespace, "fp-control-\(i)")
+            let result = evaluator.evaluate(featureName: "ab-feature", request: req)
+            if result != nil && result?.key == nil {
+                XCTAssertEqual(FlagConstants.Policy.CONTROL_GROUP_FEATURE_ID, result?.id)
+                XCTAssertNotNil(result?.analyticsParam)
+                XCTAssertFalse(FeatureResult.isServed(result))
+                XCTAssertFalse(evaluator.isEnabled(featureName: "ab-feature", request: req))
+                sawControl = true
+                break
+            }
+        }
+        XCTAssertTrue(sawControl)
+    }
+
+    func testEvaluateServedFeatureIsPopulatedAndServed() {
+        putFeatureGroups(featureGroupObjects("R1", featureValue("dark-mode", "variant-a")))
+        let result = evaluator.evaluate(featureName: "dark-mode", request: emptyRequest())
+        XCTAssertEqual("dark-mode", result?.key)
+        XCTAssertEqual("variant-a", result?.value as? String)
+        XCTAssertTrue(FeatureResult.isServed(result))
+    }
+
+    func testIsServedHelper() {
+        XCTAssertFalse(FeatureResult.isServed(nil))
+        XCTAssertFalse(FeatureResult.isServed(FeatureResult(id: -1, key: nil, featureGroupKey: nil, value: nil, meta: nil)))
+        XCTAssertTrue(FeatureResult.isServed(FeatureResult(id: 1, key: "k", featureGroupKey: nil, value: nil, meta: nil)))
+    }
 }

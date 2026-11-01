@@ -16,14 +16,9 @@ Package.resolved
 # Release signing (local only)
 .signing/
 
-# CocoaPods
-Pods/
-Podfile.lock
-
 # macOS
 .DS_Store
 
 # IDE
 .idea/
 .vscode/
-.cursor/

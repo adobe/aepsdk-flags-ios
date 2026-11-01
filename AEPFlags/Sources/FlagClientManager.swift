@@ -19,10 +19,9 @@ final class FlagClientManager {
     private static let selfTag = "FlagClientManager"
 
     /// Schedules the slow `FlagsMobileClientFactory.create()` call off the caller's thread.
-    /// Abstracted (rather than a hardcoded `DispatchQueue`) so tests that need to hold this
-    /// work "in flight" for a controlled window don't have to block a real thread out of
-    /// GCD's shared, size-limited `.utility` worker pool -- see `DispatchQueue` conformance
-    /// below for the production behavior this defaults to.
+    /// Abstracted (rather than a hardcoded `DispatchQueue`) so tests can run client creation
+    /// deterministically instead of depending on when the OS schedules a background queue.
+    /// Production uses a private serial `.utility` queue (see `init`).
     protocol InitScheduler {
         func schedule(_ work: @escaping () -> Void)
     }
@@ -293,7 +292,9 @@ final class FlagClientManager {
             let feature = try client.getFeature(named: featureName, request: request)
 
             var responseData: [String: Any] = [:]
-            if let feature {
+            // "Not served" (nil result or control sentinel) is a normal outcome: respond with no payload
+            // and no error marker. Exposure is still queued below for control cohorts.
+            if let feature, FeatureResultMapper.isServed(feature) {
                 responseData[FlagConstants.EventDataKeys.feature] = FeatureResultMapper.featureResultToMap(feature)
             }
 

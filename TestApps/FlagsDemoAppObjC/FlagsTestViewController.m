@@ -44,8 +44,7 @@
 @property (nonatomic, copy, nullable) NSString *ecid;
 @property (nonatomic, strong) UILabel *ecidValueLabel;
 
-// Custom identity
-@property (nonatomic, strong) UISwitch *customIdentitySwitch;
+// Custom identity, set with Identity for Edge Network (never through the evaluation context)
 @property (nonatomic, strong) UITextField *identityNamespaceField;
 @property (nonatomic, strong) UITextField *identityIdField;
 
@@ -88,8 +87,11 @@
     [self.scrollView addSubview:self.contentStack];
 
     [self.contentStack addArrangedSubview:[self buildHeader]];
-    [self.contentStack addArrangedSubview:[FlagDemoUIHelper cardViewWithContent:[self buildStatusContent]]];
+    [self.contentStack addArrangedSubview:[FlagDemoUIHelper cardViewWithContent:[FlagDemoUIHelper configStatusContent]]];
     [self.contentStack addArrangedSubview:[FlagDemoUIHelper cardViewWithContent:[self buildIdentitiesContent]]];
+    if ([FlagDemoFetchConfig knownFeatures].count == 0) {
+        [self.contentStack addArrangedSubview:[FlagDemoUIHelper cardViewWithContent:[FlagDemoUIHelper noFeatureKeysContent]]];
+    }
 
     self.fetchButton = [FlagDemoUIHelper primaryButtonWithTitle:@"⟳  Fetch Features"];
     [self.fetchButton.heightAnchor constraintEqualToConstant:50].active = YES;
@@ -163,25 +165,6 @@
     return header;
 }
 
-- (UIView *)buildStatusContent {
-    UIStackView *statusContent = [[UIStackView alloc] init];
-    statusContent.axis = UILayoutConstraintAxisHorizontal;
-    statusContent.spacing = 8;
-    statusContent.alignment = UIStackViewAlignmentCenter;
-    UIView *statusDot = [[UIView alloc] init];
-    statusDot.translatesAutoresizingMaskIntoConstraints = NO;
-    statusDot.backgroundColor = [FlagDemoTheme onGreenColor];
-    statusDot.layer.cornerRadius = 5;
-    [statusDot.widthAnchor constraintEqualToConstant:10].active = YES;
-    [statusDot.heightAnchor constraintEqualToConstant:10].active = YES;
-    UILabel *statusLabel = [[UILabel alloc] init];
-    statusLabel.text = @"Flags: ready";
-    statusLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
-    [statusContent addArrangedSubview:statusDot];
-    [statusContent addArrangedSubview:statusLabel];
-    return statusContent;
-}
-
 - (UIView *)buildIdentitiesContent {
     UIStackView *content = [[UIStackView alloc] init];
     content.axis = UILayoutConstraintAxisVertical;
@@ -237,26 +220,63 @@
     content.axis = UILayoutConstraintAxisVertical;
     content.spacing = 8;
 
-    UIStackView *toggleRow = [[UIStackView alloc] init];
-    toggleRow.axis = UILayoutConstraintAxisHorizontal;
-    toggleRow.alignment = UIStackViewAlignmentCenter;
-    UILabel *title = [FlagDemoUIHelper titleLabelWithText:@"Custom Identity"];
-    [title setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
-    self.customIdentitySwitch = [[UISwitch alloc] init];
-    self.customIdentitySwitch.onTintColor = [FlagDemoTheme accentColor];
-    [toggleRow addArrangedSubview:title];
-    [toggleRow addArrangedSubview:self.customIdentitySwitch];
-    [content addArrangedSubview:toggleRow];
+    [content addArrangedSubview:[FlagDemoUIHelper titleLabelWithText:@"Custom Identity"]];
 
-    UILabel *hint = [FlagDemoUIHelper bodyLabelWithText:@"When on, adds namespace + id to the evaluation context."];
+    UILabel *hint = [FlagDemoUIHelper bodyLabelWithText:
+        @"Sets an identity with Identity for Edge Network. Flags that assign users by this namespace use it. The namespace must match the flag's namespace exactly, including case."];
     hint.font = [UIFont systemFontOfSize:12];
     hint.textColor = UIColor.grayColor;
     [content addArrangedSubview:hint];
 
-    self.identityNamespaceField = [self makeLabeledField:@"Namespace" placeholder:@"ECID" intoStack:content];
-    self.identityNamespaceField.text = @"ECID";
+    self.identityNamespaceField = [self makeLabeledField:@"Namespace" placeholder:@"for example, CRMID" intoStack:content];
     self.identityIdField = [self makeLabeledField:@"Identifier" placeholder:@"identity value" intoStack:content];
+
+    UIButton *setIdentity = [FlagDemoUIHelper primaryButtonWithTitle:@"Set Identity"];
+    [setIdentity.heightAnchor constraintEqualToConstant:44].active = YES;
+    [setIdentity addTarget:self action:@selector(setCustomIdentityTapped) forControlEvents:UIControlEventTouchUpInside];
+    [content addArrangedSubview:setIdentity];
+
+    UIButton *removeIdentity = [FlagDemoUIHelper primaryButtonWithTitle:@"Remove Identity"];
+    [removeIdentity.heightAnchor constraintEqualToConstant:44].active = YES;
+    [removeIdentity addTarget:self action:@selector(removeCustomIdentityTapped) forControlEvents:UIControlEventTouchUpInside];
+    [content addArrangedSubview:removeIdentity];
     return content;
+}
+
+- (nullable AEPIdentityItem *)customIdentityItem {
+    NSCharacterSet *whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+    NSString *namespace = [self.identityNamespaceField.text stringByTrimmingCharactersInSet:whitespace];
+    NSString *identifier = [self.identityIdField.text stringByTrimmingCharactersInSet:whitespace];
+    if (namespace.length == 0 || identifier.length == 0) {
+        return nil;
+    }
+    return [[AEPIdentityItem alloc] initWithId:identifier authenticatedState:AEPAuthenticatedStateAuthenticated primary:NO];
+}
+
+- (NSString *)trimmedIdentityNamespace {
+    return [self.identityNamespaceField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+}
+
+- (void)setCustomIdentityTapped {
+    AEPIdentityItem *item = [self customIdentityItem];
+    if (item == nil) {
+        [self addLog:@"Custom identity not set: enter a namespace and an identifier"];
+        return;
+    }
+    AEPIdentityMap *identityMap = [[AEPIdentityMap alloc] init];
+    [identityMap addItem:item withNamespace:[self trimmedIdentityNamespace]];
+    [AEPMobileEdgeIdentity updateIdentities:identityMap];
+    [self addLog:@"Custom identity set in namespace %@", [self trimmedIdentityNamespace]];
+}
+
+- (void)removeCustomIdentityTapped {
+    AEPIdentityItem *item = [self customIdentityItem];
+    if (item == nil) {
+        [self addLog:@"Custom identity not removed: enter a namespace and an identifier"];
+        return;
+    }
+    [AEPMobileEdgeIdentity removeIdentityItem:item withNamespace:[self trimmedIdentityNamespace]];
+    [self addLog:@"Custom identity removed from namespace %@", [self trimmedIdentityNamespace]];
 }
 
 - (UIView *)buildLifecycleContent {
@@ -287,9 +307,9 @@
     hint.textColor = UIColor.grayColor;
     [content addArrangedSubview:hint];
 
-    self.clientIdField = [self makeLabeledField:@"Client ID" placeholder:@"flags.clientId" intoStack:content];
+    self.clientIdField = [self makeLabeledField:@"Application ID" placeholder:@"flags.clientId" intoStack:content];
     self.sandboxField = [self makeLabeledField:@"Sandbox" placeholder:@"flags.sandbox" intoStack:content];
-    self.imsOrgField = [self makeLabeledField:@"IMS Org" placeholder:@"experienceCloud.org" intoStack:content];
+    self.imsOrgField = [self makeLabeledField:@"Org ID" placeholder:@"experienceCloud.org" intoStack:content];
     self.edgeDomainField = [self makeLabeledField:@"Edge Domain" placeholder:@"edge.domain" intoStack:content];
 
     UIButton *apply = [FlagDemoUIHelper primaryButtonWithTitle:@"Apply Config"];
@@ -333,10 +353,9 @@
     helpContent.spacing = 8;
     [helpContent addArrangedSubview:[FlagDemoUIHelper titleLabelWithText:@"Interpreting flag results"]];
     [helpContent addArrangedSubview:[FlagDemoUIHelper bodyLabelWithText:
-        @"Green = Flag.isFeatureEnabled returned true for this ECID + Evaluation Context. Grey = returned false under current rules (expected if profile or sandbox does not match provisioned data)."]];
-    [helpContent addArrangedSubview:[FlagDemoUIHelper bodyLabelWithText:@"Orange dot + Error line = SDK callback failed (network, IMS, or server error). Check console logs."]];
-    UILabel *note = [FlagDemoUIHelper bodyLabelWithText:
-        @"Fetch Features evaluates keys one at a time so the SDK does not hit general.callback.timeout from too many parallel requests."];
+        @"Green = Flag.isFeatureEnabled returned true for this ECID + Evaluation Context. Grey = returned false (the feature doesn't exist, the targeting rules don't match, or the user is in a control group)."]];
+    [helpContent addArrangedSubview:[FlagDemoUIHelper bodyLabelWithText:@"Orange dot + Error line = the error callback ran, for example because of a timeout or missing configuration. Check the console logs."]];
+    UILabel *note = [FlagDemoUIHelper bodyLabelWithText:@"Fetch Features evaluates the keys one at a time."];
     note.font = [UIFont systemFontOfSize:12];
     note.textColor = UIColor.grayColor;
     [helpContent addArrangedSubview:note];
@@ -399,10 +418,10 @@
 - (void)lifecycleChanged {
     if (self.lifecycleControl.selectedSegmentIndex == 0) {
         [AEPMobileCore lifecycleStart:nil];
-        [self addLog:@"FOREGROUND — lifecycleStart, polling resumes"];
+        [self addLog:@"FOREGROUND — lifecycleStart, flag refresh resumes"];
     } else {
         [AEPMobileCore lifecyclePause];
-        [self addLog:@"BACKGROUND — lifecyclePause, polling paused"];
+        [self addLog:@"BACKGROUND — lifecyclePause, flag refresh paused, pending exposures sent"];
     }
 }
 
@@ -466,15 +485,15 @@
     if (self.isLoading) {
         return;
     }
-    self.isLoading = YES;
     NSArray<FlagDemoFeature *> *features = [FlagDemoFetchConfig knownFeatures];
+    if (features.count == 0) {
+        [self addLog:@"No feature keys to evaluate. Add keys to knownFeatures in FlagDemoFetchConfig.m."];
+        return;
+    }
+    self.isLoading = YES;
     [self addLog:@"Fetching %lu features via isFeatureEnabled()", (unsigned long)features.count];
 
-    NSString *ns = self.customIdentitySwitch.isOn ? self.identityNamespaceField.text : nil;
-    NSString *cid = self.customIdentitySwitch.isOn ? self.identityIdField.text : nil;
-    AEPFeatureEvaluationContext *context = [FlagDemoFetchConfig buildEvaluationContextFromEntries:self.contextEditor.currentEntries
-                                                                                 customNamespace:ns
-                                                                                        customId:cid];
+    AEPFeatureEvaluationContext *context = [FlagDemoFetchConfig buildEvaluationContextFromEntries:self.contextEditor.currentEntries];
     NSMutableArray<FlagDemoFeatureState *> *results = [NSMutableArray array];
     __weak typeof(self) weakSelf = self;
     __block void (^evaluateNext)(NSInteger);
@@ -491,23 +510,27 @@
         [AEPMobileFlag isFeatureEnabled:feature.key
                       evaluationContext:context
                              completion:^(BOOL enabled) {
-            FlagDemoFeatureState *state = [[FlagDemoFeatureState alloc] init];
-            state.key = feature.key;
-            state.displayName = feature.displayName;
-            state.enabled = enabled;
-            [results addObject:state];
-            [strongSelf addLog:@"%@ -> %@", feature.key, enabled ? @"ON" : @"OFF"];
-            evaluateNext(index + 1);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                FlagDemoFeatureState *state = [[FlagDemoFeatureState alloc] init];
+                state.key = feature.key;
+                state.displayName = feature.displayName;
+                state.enabled = enabled;
+                [results addObject:state];
+                [strongSelf addLog:@"%@ -> %@", feature.key, enabled ? @"ON" : @"OFF"];
+                evaluateNext(index + 1);
+            });
         } errorCallback:^(enum AEPError error) {
-            NSString *message = [FlagDemoJSONHelper demoErrorStringForCode:error prefix:@"fetch_error"];
-            FlagDemoFeatureState *state = [[FlagDemoFeatureState alloc] init];
-            state.key = feature.key;
-            state.displayName = feature.displayName;
-            state.enabled = NO;
-            state.evaluationError = message;
-            [results addObject:state];
-            [strongSelf addLog:@"Error: %@ — %@", feature.key, message];
-            evaluateNext(index + 1);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSString *message = [FlagDemoJSONHelper demoErrorStringForCode:error prefix:@"fetch_error"];
+                FlagDemoFeatureState *state = [[FlagDemoFeatureState alloc] init];
+                state.key = feature.key;
+                state.displayName = feature.displayName;
+                state.enabled = NO;
+                state.evaluationError = message;
+                [results addObject:state];
+                [strongSelf addLog:@"Error: %@ — %@", feature.key, message];
+                evaluateNext(index + 1);
+            });
         }];
     };
     evaluateNext(0);

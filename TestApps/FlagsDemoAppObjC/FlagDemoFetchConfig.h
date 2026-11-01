@@ -18,19 +18,26 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// Defaults for Flags demo evaluation. Populate locally before running against a real environment.
+/// Settings for the Flags demo. Set these locally before you run the demo against your own mobile property.
 @interface FlagDemoFetchConfig : NSObject
 
 + (NSString *)logTag;
-+ (NSString *)launchAppId;
-+ (NSString *)ecidNamespace;
-+ (NSString *)ecidValue;
+
+/// Environment File ID of your mobile property. In Data Collection, open your mobile property and
+/// select Environments to find it. While this is empty, the demo shows a message and doesn't configure the SDK.
++ (NSString *)environmentFileId;
+
 + (NSDictionary<NSString *, NSArray<NSString *> *> *)baseAttributes;
-+ (NSArray<NSString *> *)provisionFeatureKeys;
+
+/// Feature keys offered by the key picker on the Get Feature tab.
++ (NSArray<NSString *> *)featureKeys;
+
+/// Initial feature key on the Get Feature tab. Empty when `knownFeatures` is empty.
 + (NSString *)defaultFeatureKey;
 + (NSArray<FlagDemoContextEntry *> *)defaultContextEntries;
 
-/// Example feature flags with friendly names, mirroring the Luma Flags reference app.
+/// Feature flags that the Flags tab evaluates. Empty by default: add the feature keys you created in
+/// Experience Flags in FlagDemoFetchConfig.m. While this list is empty, the demo shows a message instead.
 + (NSArray<FlagDemoFeature *> *)knownFeatures;
 
 /// Configuration keys published from Data Collection for the Flags extension.
@@ -42,11 +49,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSDictionary<NSString *, NSArray<NSString *> *> *)mergedAttributesFromEntries:(NSArray<FlagDemoContextEntry *> *)entries;
 + (AEPFeatureEvaluationContext *)buildEvaluationContextFromEntries:(NSArray<FlagDemoContextEntry *> *)entries;
-
-/// Builds a context, optionally injecting a custom identity (namespace + id) alongside the attributes.
-+ (AEPFeatureEvaluationContext *)buildEvaluationContextFromEntries:(NSArray<FlagDemoContextEntry *> *)entries
-                                                  customNamespace:(nullable NSString *)customNamespace
-                                                         customId:(nullable NSString *)customId;
 
 @end
 

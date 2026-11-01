@@ -14,12 +14,14 @@ import Foundation
 
 /// Maps engine feature results for extension API responses.
 enum FeatureResultMapper {
-    /// A feature is enabled when it exists and has a non-empty key.
+    /// Single "is served" check: false for a nil result and for the feature-level control sentinel (nil key).
+    static func isServed(_ feature: FlagsSDKFeatureResult?) -> Bool {
+        FlagsSDKFeatureResult.isServed(feature)
+    }
+
+    /// A feature is enabled only when it is served.
     static func isEnabledFeatureResult(_ feature: FlagsSDKFeatureResult?) -> Bool {
-        guard let feature, let key = feature.key, !key.isEmpty else {
-            return false
-        }
-        return true
+        isServed(feature)
     }
 
     static func featureResultToMap(_ feature: FlagsSDKFeatureResult) -> [String: Any] {

@@ -30,7 +30,8 @@ class FlagClientManagerTests: XCTestCase {
         manager = FlagClientManager(
             extensionRuntime: runtime,
             identityFetcher: identityFetcher,
-            exposureQueue: syncQueue
+            exposureQueue: syncQueue,
+            initScheduler: InlineInitScheduler()
         )
         FlagsMobileClientFactory.createOverride = nil
     }
@@ -117,9 +118,7 @@ class FlagClientManagerTests: XCTestCase {
             resolved = data
             exp.fulfill()
         }
-        // Generous timeout: on a contended CI runner this can trail behind a preceding test's
-        // blocked-semaphore GCD thread (see testStartAsyncInitialization_secondCallWhileInProgress_noDuplicate).
-        wait(for: [exp], timeout: 10.0)
+        wait(for: [exp], timeout: 2.0)
 
         XCTAssertEqual(resolved?[FlagConstants.SharedState.initializationStatus] as? String, FlagConstants.SharedState.statusReady)
         XCTAssertTrue(manager.isClientReady())
@@ -165,16 +164,16 @@ class FlagClientManagerTests: XCTestCase {
 
     // T-C4: A second `startAsyncInitialization` while one is in progress does not resolve twice or re-init.
     func testStartAsyncInitialization_secondCallWhileInProgress_noDuplicate() {
-        // Uses a dedicated-thread scheduler (not the production GCD-pooled default) so that
-        // gate.wait() below blocks a throwaway OS thread instead of a shared GCD worker-pool
-        // thread -- see DedicatedThreadInitScheduler for why that distinction matters.
+        // Creation is held in flight by a semaphore, so it needs its own thread: an inline scheduler
+        // would block the test thread.
         manager = FlagClientManager(
             extensionRuntime: runtime,
             identityFetcher: identityFetcher,
+            exposureQueue: ExposureQueueTestSupport.createDeterministicQueue { _ in },
             initScheduler: DedicatedThreadInitScheduler()
         )
-
         let gate = DispatchSemaphore(value: 0)
+        defer { gate.signal() }
         let createCount = AtomicCounter()
         FlagsMobileClientFactory.createOverride = { _ in
             createCount.increment()
@@ -190,7 +189,7 @@ class FlagClientManagerTests: XCTestCase {
             resolveExp.fulfill()
         }
 
-        // First call: sets initializationInProgress synchronously, then blocks in createOverride on its own thread.
+        // First call: sets initializationInProgress synchronously, then blocks in createOverride on initQueue.
         manager.startAsyncInitialization(configData: fullRequiredConfig(), resolver: resolver)
         XCTAssertTrue(manager.isInitializationInProgress())
 
@@ -198,7 +197,7 @@ class FlagClientManagerTests: XCTestCase {
         manager.startAsyncInitialization(configData: fullRequiredConfig(), resolver: resolver)
 
         gate.signal()
-        wait(for: [resolveExp], timeout: 5.0)
+        wait(for: [resolveExp], timeout: 2.0)
 
         XCTAssertEqual(resolveCount.value, 1)
         XCTAssertEqual(createCount.value, 1)
@@ -438,7 +437,10 @@ class FlagClientManagerTests: XCTestCase {
         XCTAssertTrue(featureMap?.keys.contains(FlagConstants.EventDataKeys.key) ?? false)
     }
 
-    func testProcessRequestEvent_getFeature_controlCohort_includesNullKeyInFeatureMap() {
+    // Changed: previously asserted the control sentinel was sent as a payload with a null key, which made the
+    // public API fail to map it and report an error. Control is now "not served": no payload, no error marker,
+    // while the exposure event is still queued (unchanged reporting).
+    func testProcessRequestEvent_getFeature_featureLevelControl_notServed_noPayloadNoError_exposureQueued() {
         let mock = MockFlagsMobileClient()
         mock.featureResult = FlagsSDKFeatureResult(
             id: -1,
@@ -452,13 +454,67 @@ class FlagClientManagerTests: XCTestCase {
 
         manager.processRequestEvent(getFeatureEvent(featureName: "checkout-flag"))
 
-        let featureMap = featureMap(from: responseEvents().first)
-        XCTAssertTrue(featureMap?.keys.contains(FlagConstants.EventDataKeys.key) ?? false)
-        XCTAssertTrue(featureMap?[FlagConstants.EventDataKeys.key] is NSNull)
+        XCTAssertEqual(1, responseEvents().count)
+        XCTAssertNil(featureMap(from: responseEvents().first))
+        XCTAssertNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
         XCTAssertTrue(propositionDisplayEdgeEvents().isEmpty)
 
         flushQueuedExposure()
         XCTAssertEqual(1, propositionDisplayEdgeEvents().count)
+    }
+
+    func testProcessRequestEvent_getFeature_unknownKey_notServed_noPayloadNoError_noExposure() {
+        let mock = MockFlagsMobileClient()
+        mock.featureResult = nil
+        initializeManager(with: mock)
+
+        manager.processRequestEvent(getFeatureEvent(featureName: "unknown"))
+        flushQueuedExposure()
+
+        XCTAssertEqual(1, responseEvents().count)
+        XCTAssertNil(featureMap(from: responseEvents().first))
+        XCTAssertNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
+        XCTAssertTrue(propositionDisplayEdgeEvents().isEmpty)
+    }
+
+    func testProcessRequestEvent_getFeature_served_includesPayloadAndQueuesExposure() {
+        let mock = MockFlagsMobileClient()
+        mock.featureResult = featureResultWithAnalytics(
+            featureGroupId: 23261,
+            featureGroupKey: "fg-group",
+            featureId: 1,
+            featureKey: "feature-a",
+            variantId: "10283012"
+        )
+        initializeManager(with: mock)
+
+        manager.processRequestEvent(getFeatureEvent(featureName: "feature-a"))
+
+        XCTAssertEqual("feature-a", featureMap(from: responseEvents().first)?[FlagConstants.EventDataKeys.key] as? String)
+        XCTAssertNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
+        flushQueuedExposure()
+        XCTAssertEqual(1, propositionDisplayEdgeEvents().count)
+    }
+
+    func testProcessRequestEvent_getFeature_emptyName_errors() {
+        initializeManager(with: MockFlagsMobileClient())
+
+        manager.processRequestEvent(getFeatureEvent(featureName: ""))
+
+        XCTAssertEqual(1, responseEvents().count)
+        XCTAssertNotNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
+    }
+
+    func testProcessRequestEvent_getFeature_thrownEvaluationError_errors() {
+        let mock = MockFlagsMobileClient()
+        mock.getFeatureError = FlagClientError.operationFailed(message: "boom", underlying: nil)
+        initializeManager(with: mock)
+
+        manager.processRequestEvent(getFeatureEvent())
+
+        XCTAssertEqual(1, responseEvents().count)
+        XCTAssertNotNil(responseEvents().first?.data?[FlagConstants.EventDataKeys.responseError])
+        XCTAssertNil(featureMap(from: responseEvents().first))
     }
 
     // MARK: - Exposure queue

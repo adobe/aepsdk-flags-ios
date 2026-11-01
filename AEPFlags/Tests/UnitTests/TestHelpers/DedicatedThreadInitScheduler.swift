@@ -13,12 +13,10 @@
 @testable import AEPFlags
 import Foundation
 
-/// `FlagClientManager.InitScheduler` that runs each scheduled block on its own brand-new
-/// OS thread instead of a GCD-pooled queue. Tests that need to hold `startAsyncInitialization`
-/// "in flight" (e.g. via a `DispatchSemaphore` gate) should inject this instead of relying on
-/// the production `DispatchQueue`-backed default: blocking a dedicated thread here cannot starve
-/// GCD's shared `.utility` worker pool the way blocking a real pooled queue can, which is what
-/// made the equivalent tests flaky on constrained CI runners.
+/// `FlagClientManager.InitScheduler` that runs each scheduled block on its own new OS thread.
+///
+/// Tests that hold client creation "in flight" (for example with a `DispatchSemaphore` gate) use this,
+/// so the held work never blocks the test thread or another test's queue.
 final class DedicatedThreadInitScheduler: FlagClientManager.InitScheduler {
     func schedule(_ work: @escaping () -> Void) {
         Thread.detachNewThread(work)

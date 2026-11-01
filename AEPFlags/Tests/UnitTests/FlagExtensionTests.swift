@@ -30,10 +30,22 @@ class FlagExtensionTests: XCTestCase {
         let manager = FlagClientManager(
             extensionRuntime: runtime,
             identityFetcher: identityFetcher,
-            exposureQueue: syncQueue
+            exposureQueue: syncQueue,
+            initScheduler: InlineInitScheduler()
         )
         flag = AEPFlags.Flag(runtime: runtime, clientManager: manager, identityFetcher: identityFetcher)
         useDefaultMockClient()
+    }
+
+    /// For tests that hold client creation in flight with a semaphore: creation then runs on its own
+    /// thread instead of inline, so the test thread is never blocked.
+    private func useDedicatedThreadInitScheduler() {
+        let manager = FlagClientManager(
+            extensionRuntime: runtime,
+            identityFetcher: identityFetcher,
+            initScheduler: DedicatedThreadInitScheduler()
+        )
+        flag = AEPFlags.Flag(runtime: runtime, clientManager: manager, identityFetcher: identityFetcher)
     }
 
     private func useDefaultMockClient() {
@@ -171,6 +183,7 @@ class FlagExtensionTests: XCTestCase {
         flag = AEPFlags.Flag(runtime: runtime, clientManager: manager, identityFetcher: identityFetcher)
 
         let block = DispatchSemaphore(value: 0)
+        useDedicatedThreadInitScheduler()
         FlagsMobileClientFactory.createOverride = { _ in
             block.wait()
             return MockFlagsMobileClient()
@@ -196,6 +209,8 @@ class FlagExtensionTests: XCTestCase {
         flag = AEPFlags.Flag(runtime: runtime, clientManager: manager, identityFetcher: identityFetcher)
 
         let gate = DispatchSemaphore(value: 0)
+        useDedicatedThreadInitScheduler()
+        defer { gate.signal() }
         FlagsMobileClientFactory.createOverride = { _ in
             gate.wait()
             let mock = MockFlagsMobileClient()

@@ -35,6 +35,12 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIButton *)primaryButtonWithTitle:(NSString *)title;
 + (UIActivityIndicatorView *)loadingIndicator;
 
+/// Shows whether `FlagDemoFetchConfig.environmentFileId` is set.
++ (UIView *)configStatusContent;
+
+/// Explains how to add feature keys when `FlagDemoFetchConfig.knownFeatures` is empty.
++ (UIView *)noFeatureKeysContent;
+
 @end
 
 /// Reusable evaluation-context editor used by both demo tabs.

@@ -11,29 +11,28 @@
 # governing permissions and limitations under the License.
 #
 # Resolves the Flags iOS extension version string for release scripts and CI.
-# Priority: FLAGS_EXTENSION_VERSION env → git tag (v*) → FlagConstants.extensionVersion.
+# Priority: FLAGS_EXTENSION_VERSION env -> FlagConstants.extensionVersion (the single source of truth).
+# Git tags are intentionally NOT consulted: they are created FROM this version at release time, may not be
+# reachable from HEAD, and the old 'v*' glob never matched this repo's unprefixed tags.
+# Fails (non-zero) if the version cannot be resolved or is not a valid version.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=Scripts/semver.sh
+source "${ROOT}/Scripts/semver.sh"
 
 if [[ -n "${FLAGS_EXTENSION_VERSION:-}" ]]; then
-  printf '%s' "${FLAGS_EXTENSION_VERSION}"
-  exit 0
+  VERSION="${FLAGS_EXTENSION_VERSION}"
+else
+  CONSTANTS="${ROOT}/AEPFlags/Sources/FlagConstants.swift"
+  VERSION=""
+  [[ -f "${CONSTANTS}" ]] && VERSION="$(read_source_version "${CONSTANTS}")"
 fi
 
-if TAG="$(git -C "${ROOT}" describe --tags --match 'v*' --abbrev=0 2>/dev/null)"; then
-  printf '%s' "${TAG#v}"
-  exit 0
+if [[ -z "${VERSION}" ]]; then
+  echo "error: could not resolve extension version (set FLAGS_EXTENSION_VERSION or fix FlagConstants.extensionVersion)" >&2
+  exit 1
 fi
 
-CONSTANTS="${ROOT}/AEPFlags/Sources/FlagConstants.swift"
-if [[ -f "${CONSTANTS}" ]]; then
-  VERSION="$(sed -n 's/.*extensionVersion = "\([^"]*\)".*/\1/p' "${CONSTANTS}" | head -n 1)"
-  if [[ -n "${VERSION}" ]]; then
-    printf '%s' "${VERSION}"
-    exit 0
-  fi
-fi
-
-echo "error: could not resolve extension version (set FLAGS_EXTENSION_VERSION or tag the repo)" >&2
-exit 1
+require_valid_version "${VERSION}"
+printf '%s' "${VERSION}"

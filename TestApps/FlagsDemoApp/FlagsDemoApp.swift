@@ -43,11 +43,10 @@ struct LogLine: Identifiable {
 
 /// Shared, observable test/validation state for the Flags demo.
 ///
-/// Mirrors the Luma Flags reference app's view model: live ECID, an on-screen
-/// activity log, app lifecycle toggling, runtime config override, and an optional
-/// custom identity injected into the evaluation context.
+/// Holds the live ECID, an on-screen activity log, app lifecycle toggling, a runtime
+/// configuration override, and an optional custom identity set with Identity for Edge Network.
 final class FlagsDemoStore: ObservableObject {
-    @Published var ecid: String = FlagDemoFetchConfig.ecidValue
+    @Published var ecid: String = ""
     @Published var logs: [LogLine] = []
     @Published var appState: AppLifecycleState = .foreground
 
@@ -57,9 +56,8 @@ final class FlagsDemoStore: ObservableObject {
     @Published var imsOrg: String = ""
     @Published var edgeDomain: String = ""
 
-    // Optional custom identity injected into the evaluation context.
-    @Published var useCustomIdentity: Bool = false
-    @Published var identityNamespace: String = "ECID"
+    // Optional custom identity, set with Identity for Edge Network (never through the evaluation context).
+    @Published var identityNamespace: String = ""
     @Published var identityId: String = ""
 
     init() {
@@ -84,25 +82,57 @@ final class FlagsDemoStore: ObservableObject {
         }
     }
 
-    /// Builds the evaluation context from editor entries, adding the custom identity when enabled.
+    /// Builds the evaluation context from the editor entries.
     func buildEvaluationContext(from entries: [ContextEntry]) -> FeatureEvaluationContext {
-        FlagDemoFetchConfig.buildEvaluationContext(
-            from: entries,
-            customIdentityNamespace: useCustomIdentity ? identityNamespace : nil,
-            customIdentityId: useCustomIdentity ? identityId : nil
-        )
+        FlagDemoFetchConfig.buildEvaluationContext(from: entries)
     }
 
-    /// Drives `MobileCore` lifecycle to test polling and cache-refresh behavior.
+    /// Sets the custom identity with Identity for Edge Network. Flags that assign users by this
+    /// namespace use it to pick the user's variant.
+    func applyCustomIdentity() {
+        guard let item = customIdentityItem() else {
+            addLog("Custom identity not set: enter a namespace and an identifier")
+            return
+        }
+        let identityMap = IdentityMap()
+        identityMap.add(item: item, withNamespace: trimmed(identityNamespace))
+        Identity.updateIdentities(with: identityMap)
+        addLog("Custom identity set in namespace \(trimmed(identityNamespace))")
+    }
+
+    /// Removes the custom identity from Identity for Edge Network.
+    func removeCustomIdentity() {
+        guard let item = customIdentityItem() else {
+            addLog("Custom identity not removed: enter a namespace and an identifier")
+            return
+        }
+        Identity.removeIdentity(item: item, withNamespace: trimmed(identityNamespace))
+        addLog("Custom identity removed from namespace \(trimmed(identityNamespace))")
+    }
+
+    private func customIdentityItem() -> IdentityItem? {
+        let namespace = trimmed(identityNamespace)
+        let id = trimmed(identityId)
+        guard !namespace.isEmpty, !id.isEmpty else {
+            return nil
+        }
+        return IdentityItem(id: id, authenticatedState: .authenticated, primary: false)
+    }
+
+    private func trimmed(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Drives `MobileCore` lifecycle so you can test flag refresh and exposure sending.
     func setAppState(_ state: AppLifecycleState) {
         appState = state
         switch state {
         case .foreground:
             MobileCore.lifecycleStart(additionalContextData: nil)
-            addLog("FOREGROUND — lifecycleStart, polling resumes")
+            addLog("FOREGROUND — lifecycleStart, flag refresh resumes")
         case .background:
             MobileCore.lifecyclePause()
-            addLog("BACKGROUND — lifecyclePause, polling paused")
+            addLog("BACKGROUND — lifecyclePause, flag refresh paused, pending exposures sent")
         }
     }
 
@@ -176,8 +206,11 @@ struct FlagsTestScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 headerSection
-                statusCard
+                ConfigStatusCard()
                 IdentitiesCard(ecid: store.ecid) { store.refreshEcid() }
+                if FlagDemoFetchConfig.knownFeatures.isEmpty {
+                    NoFeatureKeysCard()
+                }
                 fetchButton
                 if !featureStates.isEmpty {
                     featureResultsSection
@@ -208,18 +241,6 @@ struct FlagsTestScreen: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(Color.white)
-    }
-
-    private var statusCard: some View {
-        DemoCard {
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(DemoTheme.onGreen)
-                    .frame(width: 10, height: 10)
-                Text("Flags: ready")
-                    .font(.system(size: 14, weight: .medium))
-            }
-        }
     }
 
     private var evaluationContextCard: some View {
@@ -281,20 +302,19 @@ struct FlagsTestScreen: View {
                 .font(.system(size: 16, weight: .bold))
             Text(
                 "Green = Flag.isFeatureEnabled returned true for this ECID + Evaluation Context. " +
-                "Grey = returned false under current rules (expected if profile or sandbox does not match provisioned data)."
+                "Grey = returned false (the feature doesn't exist, the targeting rules don't match, or the user is in a control group)."
             )
             .font(.system(size: 13))
             .foregroundColor(DemoTheme.bodyText)
             .padding(.top, 8)
             Text(
-                "Orange dot + Error line = SDK callback failed (network, IMS, or server error). Check console logs."
+                "Orange dot + Error line = the error callback ran, for example because of a timeout or missing configuration. Check the console logs."
             )
             .font(.system(size: 13))
             .foregroundColor(DemoTheme.bodyText)
             .padding(.top, 8)
             Text(
-                "Fetch Features evaluates keys one at a time so the SDK does not hit general.callback.timeout " +
-                "from too many parallel requests."
+                "Fetch Features evaluates the keys one at a time."
             )
             .font(.system(size: 12))
             .foregroundColor(.gray)
@@ -320,7 +340,7 @@ struct FlagsTestScreen: View {
             .frame(height: 50)
         }
         .buttonStyle(DemoPrimaryButtonStyle())
-        .disabled(isLoading)
+        .disabled(isLoading || FlagDemoFetchConfig.knownFeatures.isEmpty)
     }
 
     private var featureResultsSection: some View {
@@ -348,6 +368,10 @@ struct FlagsTestScreen: View {
 
     /// Sequential batch evaluation (avoids parallel callback timeouts).
     private func fetchAllFeaturesSequentially() {
+        guard !FlagDemoFetchConfig.knownFeatures.isEmpty else {
+            store.addLog("No feature keys to evaluate. Add keys to knownFeatures in FlagDemoFetchConfig.swift.")
+            return
+        }
         isLoading = true
         store.addLog("Fetching \(FlagDemoFetchConfig.knownFeatures.count) features via isFeatureEnabled()")
         let evaluationContext = store.buildEvaluationContext(from: contextEntries)
@@ -452,7 +476,7 @@ private struct StatusChip: View {
     }
 }
 
-/// ECID / identities card with tap-to-copy, mirroring the Luma reference app.
+/// ECID / identities card with tap-to-copy.
 private struct IdentitiesCard: View {
     let ecid: String
     let onRefresh: () -> Void
@@ -507,50 +531,53 @@ private struct IdentityValueRow: View {
     }
 }
 
-/// Optional custom-identity injection into the evaluation context.
+/// Sets or removes a custom identity with Identity for Edge Network.
 private struct CustomIdentityCard: View {
     @ObservedObject var store: FlagsDemoStore
 
     var body: some View {
         DemoCard {
-            Toggle(isOn: $store.useCustomIdentity) {
-                Text("Custom Identity")
-                    .font(.system(size: 16, weight: .bold))
-            }
+            Text("Custom Identity")
+                .font(.system(size: 16, weight: .bold))
 
-            Text("When on, adds namespace + id to the evaluation context.")
+            Text("Sets an identity with Identity for Edge Network. Flags that assign users by this namespace use it. The namespace must match the flag's namespace exactly, including case.")
                 .font(.system(size: 12))
                 .foregroundColor(.gray)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 2)
 
-            if store.useCustomIdentity {
-                VStack(spacing: 8) {
-                    HStack(spacing: 8) {
-                        Text("Namespace")
-                            .font(.system(size: 12, weight: .semibold))
-                            .frame(width: 84, alignment: .leading)
-                        TextField("ECID", text: $store.identityNamespace)
-                            .font(.system(size: 13))
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .disableAutocorrection(true)
-                    }
-                    HStack(spacing: 8) {
-                        Text("Identifier")
-                            .font(.system(size: 12, weight: .semibold))
-                            .frame(width: 84, alignment: .leading)
-                        TextField("identity value", text: $store.identityId)
-                            .font(.system(size: 13))
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .autocorrectionDisabled()
-                    }
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    Text("Namespace")
+                        .font(.system(size: 12, weight: .semibold))
+                        .frame(width: 84, alignment: .leading)
+                    TextField("for example, CRMID", text: $store.identityNamespace)
+                        .font(.system(size: 13))
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .disableAutocorrection(true)
                 }
-                .padding(.top, 8)
+                HStack(spacing: 8) {
+                    Text("Identifier")
+                        .font(.system(size: 12, weight: .semibold))
+                        .frame(width: 84, alignment: .leading)
+                    TextField("identity value", text: $store.identityId)
+                        .font(.system(size: 13))
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocorrectionDisabled()
+                }
+                HStack(spacing: 8) {
+                    Button("Set Identity") { store.applyCustomIdentity() }
+                        .buttonStyle(DemoPrimaryButtonStyle())
+                    Button("Remove Identity") { store.removeCustomIdentity() }
+                        .buttonStyle(DemoPrimaryButtonStyle())
+                }
             }
+            .padding(.top, 8)
         }
     }
 }
 
-/// App lifecycle FG/BG toggle to exercise polling / cache-refresh behavior.
+/// App lifecycle foreground/background toggle to exercise flag refresh and exposure sending.
 private struct LifecycleCard: View {
     @ObservedObject var store: FlagsDemoStore
 
@@ -575,6 +602,41 @@ private struct LifecycleCard: View {
     }
 }
 
+/// Shows whether the demo has an Environment File ID to configure the SDK with.
+private struct ConfigStatusCard: View {
+    var body: some View {
+        let isConfigured = !FlagDemoFetchConfig.environmentFileId.isEmpty
+        DemoCard {
+            HStack(alignment: .top, spacing: 8) {
+                Circle()
+                    .fill(isConfigured ? DemoTheme.onGreen : DemoTheme.errorOrange)
+                    .frame(width: 10, height: 10)
+                    .padding(.top, 4)
+                Text(isConfigured
+                     ? "Environment File ID is set."
+                     : "Environment File ID is not set. Set environmentFileId in FlagDemoFetchConfig.swift, then run the app again.")
+                    .font(.system(size: 14, weight: .medium))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+/// Explains how to add feature keys when `FlagDemoFetchConfig.knownFeatures` is empty.
+private struct NoFeatureKeysCard: View {
+    var body: some View {
+        DemoCard {
+            Text("No feature keys")
+                .font(.system(size: 16, weight: .bold))
+            Text("Add the feature keys you created in Experience Flags to knownFeatures in FlagDemoFetchConfig.swift.")
+                .font(.system(size: 13))
+                .foregroundColor(DemoTheme.bodyText)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 8)
+        }
+    }
+}
+
 /// Runtime SDK config override (dev/testing only).
 private struct ConfigOverrideCard: View {
     @ObservedObject var store: FlagsDemoStore
@@ -589,9 +651,9 @@ private struct ConfigOverrideCard: View {
                 .padding(.top, 2)
 
             VStack(spacing: 8) {
-                configField("Client ID", text: $store.clientId)
+                configField("Application ID", text: $store.clientId)
                 configField("Sandbox", text: $store.sandbox)
-                configField("IMS Org", text: $store.imsOrg)
+                configField("Org ID", text: $store.imsOrg)
                 configField("Edge Domain", text: $store.edgeDomain)
             }
             .padding(.top, 8)
@@ -705,7 +767,7 @@ struct GetFeatureScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 headerSection
-                statusCard
+                ConfigStatusCard()
                 featureKeyCard
                 evaluationContextCard
                 interpretingCard
@@ -736,18 +798,6 @@ struct GetFeatureScreen: View {
         .background(Color.white)
     }
 
-    private var statusCard: some View {
-        DemoCard {
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(DemoTheme.onGreen)
-                    .frame(width: 10, height: 10)
-                Text("Flags: ready")
-                    .font(.system(size: 14, weight: .medium))
-            }
-        }
-    }
-
     private var featureKeyCard: some View {
         DemoCard {
             Text("Feature Key")
@@ -759,18 +809,26 @@ struct GetFeatureScreen: View {
                 .autocorrectionDisabled()
                 .padding(.top, 8)
 
-            Menu {
-                ForEach(FlagDemoFetchConfig.provisionFeatureKeys, id: \.self) { key in
-                    Button(key) {
-                        featureKey = key
+            if FlagDemoFetchConfig.featureKeys.isEmpty {
+                Text("Type a feature key, or add keys to knownFeatures in FlagDemoFetchConfig.swift to choose from a list.")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 8)
+            } else {
+                Menu {
+                    ForEach(FlagDemoFetchConfig.featureKeys, id: \.self) { key in
+                        Button(key) {
+                            featureKey = key
+                        }
                     }
+                } label: {
+                    Text("Choose a feature key")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(DemoTheme.accent)
                 }
-            } label: {
-                Text("Choose provisioned key")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(DemoTheme.accent)
+                .padding(.top, 8)
             }
-            .padding(.top, 8)
         }
     }
 
@@ -833,13 +891,14 @@ struct GetFeatureScreen: View {
             Text("Interpreting getFeature results")
                 .font(.system(size: 16, weight: .bold))
             Text(
-                "Returns JSON for the FeatureEvaluationResult when a match exists, or null when no match is found."
+                "Shows the FeatureEvaluationResult as JSON when the feature applies to the user. " +
+                "If the key doesn't exist, the targeting rules don't match, or the user is in a control group, the error callback runs."
             )
             .font(.system(size: 13))
             .foregroundColor(DemoTheme.bodyText)
             .padding(.top, 8)
             Text(
-                "Orange Error card = SDK callback failed (network, IMS, or server error). Check console logs."
+                "Orange Error card = the error callback ran. Check the console logs."
             )
             .font(.system(size: 13))
             .foregroundColor(DemoTheme.bodyText)
@@ -927,7 +986,7 @@ struct GetFeatureScreen: View {
 
 }
 
-/// Serializes ``FeatureEvaluationResult`` to JSON using the same keys as the extension response payload.
+/// Serializes ``FeatureEvaluationResult`` to JSON for display.
 private extension FeatureEvaluationResult {
     func demoJSONString() -> String {
         guard let data = try? JSONSerialization.data(
@@ -966,7 +1025,7 @@ private extension FeatureEvaluationResult {
 }
 
 private enum DemoJSONValue {
-    /// Preserves numeric-looking strings as JSON numbers when possible (matches SDK wire format).
+    /// Shows numeric-looking strings as JSON numbers.
     static func coerce(_ value: String) -> Any {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         if let intValue = Int(trimmed) {
