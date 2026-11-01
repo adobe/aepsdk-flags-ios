@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Optional safety check. Leave empty to release the version in FlagConstants.extensionVersion. If set, it must equal that version exactly (no v prefix, e.g. 5.1.0-beta).'
+        description: 'Optional safety check. Leave empty to release the version in FlagConstants.extensionVersion. If set, it must equal that version exactly (no v prefix).'
         type: string
         required: false
         default: ''

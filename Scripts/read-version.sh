@@ -13,7 +13,7 @@
 # Resolves the Flags iOS extension version string for release scripts and CI.
 # Priority: FLAGS_EXTENSION_VERSION env -> FlagConstants.extensionVersion (the single source of truth).
 # Git tags are intentionally NOT consulted: they are created FROM this version at release time, may not be
-# reachable from HEAD, and the old 'v*' glob never matched this repo's unprefixed tags (e.g. 5.0.0-beta).
+# reachable from HEAD, and the old 'v*' glob never matched this repo's unprefixed tags.
 # Fails (non-zero) if the version cannot be resolved or is not a valid version.
 set -euo pipefail
 
